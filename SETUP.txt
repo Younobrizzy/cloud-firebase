@@ -1,0 +1,33 @@
+CLOUDFLARE + FIREBASE + GMAIL SMTP
+
+Project:
+index.html
+assets/css/style.css
+assets/js/app.js
+functions/api/config.js
+functions/api/contact.js
+
+Cloudflare Pages settings (files at repository root):
+Root directory: blank
+Build command: exit 0
+Build output directory: .
+
+Firebase variables (Text):
+FIREBASE_API_KEY
+FIREBASE_AUTH_DOMAIN
+FIREBASE_PROJECT_ID
+FIREBASE_STORAGE_BUCKET
+FIREBASE_MESSAGING_SENDER_ID
+FIREBASE_APP_ID
+
+Gmail SMTP variables:
+SMTP_HOST = smtp.gmail.com (Text)
+SMTP_PORT = 587 (Text)
+SMTP_USERNAME = your@gmail.com (Text)
+SMTP_PASSWORD = your 16-character Gmail App Password (Secret)
+CONTACT_TO = destination@gmail.com (Text)
+
+Gmail must have 2-Step Verification enabled before creating an App Password.
+Do not commit SMTP_PASSWORD to GitHub or place it in frontend JavaScript.
+The contact form posts only to /api/contact; SMTP credentials are read by the Cloudflare Function.
+This implementation uses Gmail SMTP port 587 with STARTTLS.
