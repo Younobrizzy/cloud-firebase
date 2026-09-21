@@ -1,25 +1,38 @@
 GMAIL SMTP SETUP
 
-Cloudflare variables:
+Cloudflare Pages variables:
+
 Text:
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=465
 SMTP_USERNAME=your@gmail.com
+SMTP_FROM_NAME=Your Business Name
+SMTP_FROM_EMAIL=your@gmail.com
 CONTACT_TO=your@gmail.com
 
 Secret:
 SMTP_PASSWORD=your 16-character Gmail App Password
 
-IMPORTANT:
-1. Use a Gmail App Password, not your normal Gmail password.
-2. Gmail App Passwords require 2-Step Verification.
-3. This version uses Gmail implicit TLS on port 465.
-4. Do not use port 587 with this version.
-5. Do not put SMTP_PASSWORD in GitHub or frontend JavaScript.
-6. Keep the Function at functions/api/contact.js.
+EMAIL FLOW
 
-The frontend calls:
+The contact form sends:
 POST /api/contact
 
-The Function connects directly from Cloudflare Workers to:
+Cloudflare sends through:
 smtp.gmail.com:465
+
+The email headers are:
+From: SMTP_FROM_NAME <SMTP_FROM_EMAIL>
+To: CONTACT_TO
+Reply-To: visitor's email
+
+IMPORTANT
+
+1. Use a Gmail App Password, not your normal Gmail password.
+2. Gmail App Passwords require 2-Step Verification.
+3. This project uses Gmail implicit TLS on port 465.
+4. Keep SMTP_PASSWORD as a Cloudflare Secret.
+5. Do not put SMTP credentials in frontend JavaScript or GitHub.
+6. SMTP_FROM_EMAIL should normally match the authenticated Gmail account
+   (SMTP_USERNAME), unless Gmail has authorized the address as a sending alias.
+7. SMTP_FROM_NAME is the name recipients see in their inbox.

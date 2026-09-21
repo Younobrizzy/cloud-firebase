@@ -68,6 +68,8 @@ export async function onRequestPost(context) {
     "SMTP_PORT",
     "SMTP_USERNAME",
     "SMTP_PASSWORD",
+    "SMTP_FROM_NAME",
+    "SMTP_FROM_EMAIL",
     "CONTACT_TO"
   ].filter((key) => !env[key]);
 
@@ -94,6 +96,8 @@ export async function onRequestPost(context) {
   const port = Number(env.SMTP_PORT);
   const username = String(env.SMTP_USERNAME).trim();
   const password = String(env.SMTP_PASSWORD);
+  const fromName = headerValue(env.SMTP_FROM_NAME, 120);
+  const fromEmail = headerValue(env.SMTP_FROM_EMAIL, 254);
   const recipient = headerValue(env.CONTACT_TO, 254);
 
   if (!name || !email || !message) {
@@ -138,11 +142,13 @@ export async function onRequestPost(context) {
     await command(writer, reader, `RCPT TO:<${recipient}>`, [250, 251]);
     await command(writer, reader, "DATA", [354]);
 
+    // Visible sender is controlled by SMTP_FROM_NAME / SMTP_FROM_EMAIL.
+    // Reply-To remains the visitor's email.
     const subject = `New contact message from ${name}`;
     const safeMessage = message.replace(/^\./gm, "..");
 
     const mail = [
-      `From: ${username}`,
+      `From: ${fromName} <${fromEmail}>`,
       `To: ${recipient}`,
       `Reply-To: ${email}`,
       `Subject: ${subject}`,
