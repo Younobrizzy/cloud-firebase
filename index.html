@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Login</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+<main class="page">
+<section class="card" id="loginView">
+<div class="eyebrow">Login</div>
+<h1>Welcome back</h1>
+<p class="subtitle">Sign in to continue.</p>
+<form id="loginForm">
+<label for="email">Email</label>
+<input id="email" type="email" placeholder="you@example.com" autocomplete="email" required>
+<label for="password">Password</label>
+<input id="password" type="password" placeholder="Enter your password" autocomplete="current-password" required>
+<p id="message" class="message"></p>
+<button id="loginButton" type="submit">Login</button>
+</form>
+</section>
+
+<section class="card hidden" id="contactView">
+<div class="eyebrow">Contact</div>
+<h1>Contact form</h1>
+<p class="subtitle">Send us a message.</p>
+<form id="contactForm">
+<label for="name">Name</label>
+<input id="name" type="text" placeholder="Your name" autocomplete="name" required>
+<label for="contactEmail">Email</label>
+<input id="contactEmail" type="email" placeholder="you@example.com" autocomplete="email" required>
+<label for="contactMessage">Message</label>
+<textarea id="contactMessage" placeholder="Write your message..." required></textarea>
+<p id="contactStatus" class="message"></p>
+<button type="submit">Send message</button>
+</form>
+</section>
+</main>
+<script type="module" src="/assets/js/app.js"></script>
+</body>
+</html>
