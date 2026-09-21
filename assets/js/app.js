@@ -1,95 +1,24 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-import {
-  getAuth,
-  signInWithEmailAndPassword
-} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
-import {
-  getFirestore
-} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+import{initializeApp}from"https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";import{getAuth,signInWithEmailAndPassword}from"https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";import{getFirestore}from"https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
-const form = document.getElementById("loginForm");
-const emailInput = document.getElementById("email");
-const passwordInput = document.getElementById("password");
-const message = document.getElementById("message");
-const loginButton = document.getElementById("loginButton");
+const loginView=document.getElementById("loginView"),contactView=document.getElementById("contactView"),loginForm=document.getElementById("loginForm"),email=document.getElementById("email"),password=document.getElementById("password"),message=document.getElementById("message"),loginButton=document.getElementById("loginButton"),contactForm=document.getElementById("contactForm"),contactStatus=document.getElementById("contactStatus");
+let auth,db;
 
-let auth;
-let db;
+function msg(el,text,error=true){el.textContent=text;el.style.color=error?"#dc2626":"#15803d"}
+function showContact(){loginView.classList.add("hidden");contactView.classList.remove("hidden");document.title="Contact";document.getElementById("name").focus()}
 
-function setMessage(text, isError = true) {
-  message.textContent = text;
-  message.style.color = isError ? "#dc2626" : "#15803d";
+async function init(){
+ const r=await fetch("/api/config",{headers:{Accept:"application/json"},cache:"no-store"});
+ const type=r.headers.get("content-type")||"";
+ if(!r.ok)throw new Error(`Configuration endpoint returned HTTP ${r.status}: ${await r.text()}`);
+ if(!type.includes("application/json"))throw new Error(`Configuration endpoint did not return JSON. Received: ${(await r.text()).slice(0,100)}`);
+ const config=await r.json(),app=initializeApp(config);auth=getAuth(app);db=getFirestore(app);
 }
-
-async function initializeFirebase() {
-  const response = await fetch("/api/config", {
-    headers: {
-      Accept: "application/json"
-    },
-    cache: "no-store"
-  });
-
-  const contentType = response.headers.get("content-type") || "";
-
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(
-      `Configuration endpoint returned HTTP ${response.status}${body ? `: ${body}` : ""}`
-    );
-  }
-
-  if (!contentType.includes("application/json")) {
-    const body = await response.text();
-    throw new Error(
-      `Configuration endpoint did not return JSON. Received: ${body.slice(0, 100)}`
-    );
-  }
-
-  const firebaseConfig = await response.json();
-
-  const app = initializeApp(firebaseConfig);
-  auth = getAuth(app);
-  db = getFirestore(app);
-
-  return { app, auth, db };
-}
-
-form.addEventListener("submit", async (event) => {
-  event.preventDefault();
-
-  if (!auth) {
-    setMessage("Firebase is still initializing. Please try again.");
-    return;
-  }
-
-  const email = emailInput.value.trim();
-  const password = passwordInput.value;
-
-  setMessage("");
-  loginButton.disabled = true;
-  loginButton.textContent = "Logging in...";
-
-  try {
-    await signInWithEmailAndPassword(auth, email, password);
-    setMessage("Login successful.", false);
-  } catch (error) {
-    console.error("Login error:", error);
-
-    const messages = {
-      "auth/invalid-credential": "Invalid email or password.",
-      "auth/invalid-email": "Please enter a valid email address.",
-      "auth/user-disabled": "This account has been disabled.",
-      "auth/too-many-requests": "Too many attempts. Please try again later."
-    };
-
-    setMessage(messages[error.code] || error.message || "Unable to log in.");
-  } finally {
-    loginButton.disabled = false;
-    loginButton.textContent = "Login";
-  }
+loginForm.addEventListener("submit",async e=>{
+ e.preventDefault();if(!auth)return msg(message,"Firebase is still initializing. Please try again.");
+ msg(message,"");loginButton.disabled=true;loginButton.textContent="Logging in...";
+ try{await signInWithEmailAndPassword(auth,email.value.trim(),password.value);showContact()}
+ catch(err){const m={"auth/invalid-credential":"Invalid email or password.","auth/invalid-email":"Please enter a valid email address.","auth/user-disabled":"This account has been disabled.","auth/too-many-requests":"Too many attempts. Please try again later."};msg(message,m[err.code]||err.message||"Unable to log in.")}
+ finally{loginButton.disabled=false;loginButton.textContent="Login"}
 });
-
-initializeFirebase().catch((error) => {
-  console.error("Firebase initialization error:", error);
-  setMessage(error.message || "Unable to initialize the application.");
-});
+contactForm.addEventListener("submit",e=>{e.preventDefault();msg(contactStatus,"Message form is ready. Connect the submit action to your backend to send it.",false)});
+init().catch(err=>{console.error(err);msg(message,err.message||"Unable to initialize the application.")});
