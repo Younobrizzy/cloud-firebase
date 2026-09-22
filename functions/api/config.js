@@ -1,5 +1,6 @@
-export function onRequestGet(context) {
+export async function onRequestGet(context) {
   const env = context.env;
+
   const config = {
     apiKey: env.FIREBASE_API_KEY,
     authDomain: env.FIREBASE_AUTH_DOMAIN,
@@ -8,14 +9,32 @@ export function onRequestGet(context) {
     messagingSenderId: env.FIREBASE_MESSAGING_SENDER_ID,
     appId: env.FIREBASE_APP_ID
   };
-  const missing = Object.entries(config).filter(([, value]) => !value).map(([key]) => key);
+
+  const missing = Object.entries(config)
+    .filter(([, value]) => !value)
+    .map(([key]) => key);
+
   if (missing.length) {
-    return new Response(JSON.stringify({ error: "Firebase configuration is incomplete.", missing }), {
-      status: 500,
-      headers: { "Content-Type": "application/json", "Cache-Control": "no-store" }
-    });
+    return new Response(
+      JSON.stringify({
+        error: "Firebase configuration is incomplete.",
+        missing
+      }),
+      {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "no-store"
+        }
+      }
+    );
   }
+
   return new Response(JSON.stringify(config), {
-    headers: { "Content-Type": "application/json", "Cache-Control": "no-store" }
+    status: 200,
+    headers: {
+      "Content-Type": "application/json",
+      "Cache-Control": "no-store"
+    }
   });
 }

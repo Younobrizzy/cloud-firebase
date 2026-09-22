@@ -1,35 +1,38 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup
+} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
 const loginView = document.getElementById("loginView");
 const contactView = document.getElementById("contactView");
 const loginForm = document.getElementById("loginForm");
-const loginEmail = document.getElementById("email");
-const loginPassword = document.getElementById("password");
-const loginMessage = document.getElementById("message");
+const email = document.getElementById("email");
+const password = document.getElementById("password");
+const message = document.getElementById("message");
 const loginButton = document.getElementById("loginButton");
+const googleButton = document.getElementById("googleButton");
 const contactForm = document.getElementById("contactForm");
-const contactName = document.getElementById("contactName");
-const contactEmail = document.getElementById("contactEmail");
-const contactMessage = document.getElementById("contactMessage");
-const website = document.getElementById("website");
 const contactStatus = document.getElementById("contactStatus");
-const contactButton = document.getElementById("contactButton");
 
 let auth;
 let db;
+
+const googleButtonHTML = googleButton.innerHTML;
 
 function setMessage(element, text, error = true) {
   element.textContent = text;
   element.style.color = error ? "#dc2626" : "#15803d";
 }
 
-function showContactForm() {
+function showContact() {
   loginView.classList.add("hidden");
   contactView.classList.remove("hidden");
-  document.title = "Contact";
-  contactName.focus();
+  document.title = "Cloud Firebase";
+  document.getElementById("name").focus();
 }
 
 async function initializeFirebase() {
@@ -37,73 +40,95 @@ async function initializeFirebase() {
     headers: { Accept: "application/json" },
     cache: "no-store"
   });
-  const type = response.headers.get("content-type") || "";
-  if (!response.ok) throw new Error(`Configuration endpoint returned HTTP ${response.status}.`);
-  if (!type.includes("application/json")) throw new Error("Configuration endpoint did not return JSON.");
+
+  const contentType = response.headers.get("content-type") || "";
+
+  if (!response.ok) {
+    throw new Error(
+      `Configuration endpoint returned HTTP ${response.status}: ${await response.text()}`
+    );
+  }
+
+  if (!contentType.includes("application/json")) {
+    throw new Error(
+      `Configuration endpoint did not return JSON. Received: ${(await response.text()).slice(0, 100)}`
+    );
+  }
+
   const firebaseConfig = await response.json();
   const app = initializeApp(firebaseConfig);
+
   auth = getAuth(app);
   db = getFirestore(app);
 }
 
 loginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-  if (!auth) return setMessage(loginMessage, "Firebase is still initializing. Please try again.");
-  setMessage(loginMessage, "");
+
+  if (!auth) {
+    setMessage(message, "Firebase is still initializing. Please try again.");
+    return;
+  }
+
+  setMessage(message, "");
   loginButton.disabled = true;
   loginButton.textContent = "Logging in...";
+
   try {
-    await signInWithEmailAndPassword(auth, loginEmail.value.trim(), loginPassword.value);
-    showContactForm();
+    await signInWithEmailAndPassword(auth, email.value.trim(), password.value);
+    showContact();
   } catch (error) {
-    const messages = {
+    const errors = {
       "auth/invalid-credential": "Invalid email or password.",
       "auth/invalid-email": "Please enter a valid email address.",
       "auth/user-disabled": "This account has been disabled.",
       "auth/too-many-requests": "Too many attempts. Please try again later."
     };
-    setMessage(loginMessage, messages[error.code] || "Unable to log in.");
+
+    setMessage(message, errors[error.code] || error.message || "Unable to log in.");
   } finally {
     loginButton.disabled = false;
     loginButton.textContent = "Login";
   }
 });
 
-contactForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  if (website.value.trim()) return;
+googleButton.addEventListener("click", async () => {
+  if (!auth) {
+    setMessage(message, "Firebase is still initializing. Please try again.");
+    return;
+  }
 
-  setMessage(contactStatus, "");
-  contactButton.disabled = true;
-  contactButton.textContent = "Sending...";
+  setMessage(message, "");
+  googleButton.disabled = true;
+  googleButton.textContent = "Signing in...";
 
   try {
-    const response = await fetch("/api/contact", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
-      body: JSON.stringify({
-        name: contactName.value.trim(),
-        email: contactEmail.value.trim(),
-        message: contactMessage.value.trim(),
-        website: website.value
-      })
-    });
-
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(data.error || "Unable to send the message.");
-
-    contactForm.reset();
-    setMessage(contactStatus, data.message || "Message sent successfully.", false);
+    await signInWithPopup(auth, new GoogleAuthProvider());
+    showContact();
   } catch (error) {
-    console.error(error);
-    setMessage(contactStatus, error.message || "Unable to send the message.");
+    const errors = {
+      "auth/popup-closed-by-user": "Google sign-in was cancelled.",
+      "auth/popup-blocked": "Your browser blocked the Google sign-in popup.",
+      "auth/unauthorized-domain": "This domain is not authorized in Firebase Authentication."
+    };
+
+    setMessage(message, errors[error.code] || error.message || "Unable to sign in with Google.");
   } finally {
-    contactButton.disabled = false;
-    contactButton.textContent = "Send message";
+    googleButton.disabled = false;
+    googleButton.innerHTML = googleButtonHTML;
   }
+});
+
+contactForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  setMessage(
+    contactStatus,
+    "Message form is ready. Connect the submit action to your backend to send it.",
+    false
+  );
 });
 
 initializeFirebase().catch((error) => {
   console.error(error);
-  setMessage(loginMessage, error.message || "Unable to initialize the application.");
+  setMessage(message, error.message || "Unable to initialize the application.");
 });
