@@ -76,7 +76,7 @@ loginForm.addEventListener("submit", async (event) => {
 
   try {
     await signInWithEmailAndPassword(auth, email.value.trim(), password.value);
-    showContact();
+    window.location.replace("/get-started/");
   } catch (error) {
     const errors = {
       "auth/invalid-credential": "Invalid email or password.",
@@ -104,7 +104,7 @@ googleButton.addEventListener("click", async () => {
 
   try {
     await signInWithPopup(auth, new GoogleAuthProvider());
-    showContact();
+    window.location.replace("/get-started/");
   } catch (error) {
     const errors = {
       "auth/popup-closed-by-user": "Google sign-in was cancelled.",

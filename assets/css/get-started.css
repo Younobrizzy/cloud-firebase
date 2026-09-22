@@ -1,0 +1,261 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #111827;
+  background: #f5f6f8;
+}
+
+button {
+  font: inherit;
+}
+
+.page {
+  width: 100%;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.get-started {
+  width: min(100%, 540px);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.brand-mark {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  padding: 8px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 3px;
+  border-radius: 11px;
+  background: #111827;
+}
+
+.brand-mark span {
+  width: 4px;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.brand-mark span:nth-child(1) {
+  height: 38%;
+}
+
+.brand-mark span:nth-child(2) {
+  height: 68%;
+}
+
+.brand-mark span:nth-child(3) {
+  height: 100%;
+}
+
+.brand-title {
+  font-size: 17px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+
+.content {
+  padding: 38px;
+  border: 1px solid #e1e4e8;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+  text-align: center;
+}
+
+.eyebrow {
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  margin-bottom: 10px;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(34px, 6vw, 48px);
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.intro {
+  max-width: 420px;
+  margin: 16px auto 0;
+  color: #64748b;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.account {
+  width: 100%;
+  margin: 28px 0 18px;
+  padding: 13px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  text-align: left;
+  background: #fafafa;
+}
+
+.avatar {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: #111827;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.account-copy {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.account-copy strong,
+.account-copy span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-copy strong {
+  font-size: 14px;
+}
+
+.account-copy span {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.primary-button,
+.secondary-button {
+  width: 100%;
+  min-height: 46px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.16s ease, opacity 0.16s ease, background 0.16s ease;
+}
+
+.primary-button {
+  border: 0;
+  background: #111827;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.secondary-button {
+  margin-top: 10px;
+  border: 1px solid #d7dce3;
+  background: #fff;
+  color: #111827;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.primary-button:hover,
+.secondary-button:hover {
+  transform: translateY(-1px);
+}
+
+.primary-button:active,
+.secondary-button:active {
+  transform: translateY(0);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+  transform: none;
+}
+
+@media (max-width: 600px) {
+  body {
+    background: #fff;
+  }
+
+  .page {
+    min-height: 100dvh;
+    padding: 0;
+    align-items: flex-start;
+  }
+
+  .get-started {
+    width: 100%;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .brand {
+    justify-content: flex-start;
+    margin: 0;
+    padding: 24px 22px 14px;
+  }
+
+  .content {
+    flex: 1;
+    min-height: calc(100dvh - 78px);
+    padding: 72px 22px 28px;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .account {
+    margin-top: 28px;
+  }
+
+  .primary-button {
+    margin-top: auto;
+  }
+}
+
+@media (max-width: 360px) {
+  .brand {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .content {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .brand-title {
+    font-size: 15px;
+  }
+}
