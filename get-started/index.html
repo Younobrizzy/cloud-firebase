@@ -25,17 +25,13 @@
       <div class="content">
         <div class="eyebrow">You’re signed in</div>
         <h1 id="pageTitle">Get started</h1>
-        <p class="intro">Your Cloud Firebase account is ready. Start by opening your workspace.</p>
+        <p class="intro">Choose a tool to continue.</p>
 
-        <div class="account" id="accountCard" hidden>
-          <div class="avatar" id="avatar">C</div>
-          <div class="account-copy">
-            <strong id="displayName">Cloud Firebase user</strong>
-            <span id="email">Signed in</span>
-          </div>
+        <div class="tool-buttons" aria-label="Cloud Firebase tools">
+          <button class="tool-button" id="firestoreButton" type="button">Firestore</button>
+          <button class="tool-button" id="formatterButton" type="button">Formatter</button>
         </div>
 
-        <button class="primary-button" id="continueButton" type="button">Continue</button>
         <button class="secondary-button" id="logoutButton" type="button">Sign out</button>
       </div>
     </section>

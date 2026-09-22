@@ -109,64 +109,24 @@ h1 {
   line-height: 1.6;
 }
 
-.account {
+.tool-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
   width: 100%;
-  margin: 28px 0 18px;
-  padding: 13px 14px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  border: 1px solid #e5e7eb;
-  border-radius: 14px;
-  text-align: left;
-  background: #fafafa;
+  margin-top: 28px;
 }
 
-.avatar {
-  width: 42px;
-  height: 42px;
-  flex: 0 0 42px;
-  display: grid;
-  place-items: center;
-  border-radius: 12px;
-  background: #111827;
-  color: #fff;
-  font-size: 15px;
-  font-weight: 800;
-}
-
-.account-copy {
-  min-width: 0;
-  display: grid;
-  gap: 3px;
-}
-
-.account-copy strong,
-.account-copy span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.account-copy strong {
-  font-size: 14px;
-}
-
-.account-copy span {
-  color: #64748b;
-  font-size: 13px;
-}
-
-.primary-button,
+.tool-button,
 .secondary-button {
   width: 100%;
-  min-height: 46px;
+  min-height: 48px;
   border-radius: 10px;
   cursor: pointer;
-  transition: transform 0.16s ease, opacity 0.16s ease, background 0.16s ease;
+  transition: transform 0.16s ease, opacity 0.16s ease, background 0.16s ease, border-color 0.16s ease;
 }
 
-.primary-button {
+.tool-button {
   border: 0;
   background: #111827;
   color: #fff;
@@ -183,12 +143,12 @@ h1 {
   font-weight: 700;
 }
 
-.primary-button:hover,
+.tool-button:hover,
 .secondary-button:hover {
   transform: translateY(-1px);
 }
 
-.primary-button:active,
+.tool-button:active,
 .secondary-button:active {
   transform: translateY(0);
 }
@@ -235,12 +195,13 @@ button:disabled {
     justify-content: center;
   }
 
-  .account {
+  .tool-buttons {
+    grid-template-columns: 1fr;
     margin-top: 28px;
   }
 
-  .primary-button {
-    margin-top: auto;
+  .secondary-button {
+    margin-top: 10px;
   }
 }
 
