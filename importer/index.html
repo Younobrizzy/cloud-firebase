@@ -77,6 +77,8 @@
               </div>
             </div>
 
+            <button class="clear-file-button" id="clearFileButton" type="button" hidden>Clear</button>
+
             <p class="field-help">Documents with a matching <code>id</code> are updated. New IDs are created as new documents.</p>
             <p id="fileStatus" class="status-message" role="status" aria-live="polite"></p>
 
@@ -139,6 +141,7 @@
     const fileName = document.getElementById("fileName");
     const collectionName = document.getElementById("collectionName");
     const documentCount = document.getElementById("documentCount");
+    const clearFileButton = document.getElementById("clearFileButton");
     const fileStatus = document.getElementById("fileStatus");
     const importButton = document.getElementById("importButton");
     const step1 = document.getElementById("step1");
@@ -235,6 +238,7 @@
       derivedCollection = "";
       jsonFile.value = "";
       fileMeta.hidden = true;
+      clearFileButton.hidden = true;
       uploadTitle.textContent = "Choose a JSON file";
       uploadText.textContent = "Tap here to select a .json file";
       setStatus(fileStatus, "");
@@ -335,8 +339,9 @@
         collectionName.textContent = derivedCollection;
         documentCount.textContent = String(parsed.length);
         fileMeta.hidden = false;
-        uploadTitle.textContent = "JSON ready";
-        uploadText.textContent = "Tap to choose a different file";
+        clearFileButton.hidden = false;
+        uploadTitle.textContent = "";
+        uploadText.textContent = "";
         importButton.disabled = false;
         setStatus(fileStatus, "JSON is ready to import.");
       } catch (error) {
@@ -344,10 +349,15 @@
         parsedDocuments = null;
         derivedCollection = "";
         fileMeta.hidden = true;
+        clearFileButton.hidden = true;
         importButton.disabled = true;
         setStatus(fileStatus, error?.message || "Unable to read the JSON file.", true);
       }
     }
+
+    clearFileButton.addEventListener("click", () => {
+      resetStep2();
+    });
 
     importButton.addEventListener("click", async () => {
       if (!targetDb || !parsedDocuments || !derivedCollection) return;
