@@ -241,6 +241,17 @@ label:focus-visible {
   gap: 10px;
 }
 
+/* When Clear is hidden, Import should fill the entire action slot so
+   Back and Import remain equal width. */
+.import-actions:has(#clearFileButton[hidden]) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.import-actions .primary-button,
+.import-actions .secondary-button {
+  width: 100%;
+}
+
 .upload-area {
   width: 100%;
   min-height: 190px;
