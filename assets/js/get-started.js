@@ -16,12 +16,8 @@ importerButton?.addEventListener("click", () => {
 let auth = null;
 
 requireAuth({
-  onUser: (user, authInstance) => {
+  onUser: (_user, authInstance) => {
     auth = authInstance;
-    const emailElement = document.getElementById("userEmail");
-    if (emailElement) {
-      emailElement.textContent = user.email || "Signed-in user";
-    }
   }
 });
 
