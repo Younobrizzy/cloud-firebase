@@ -90,6 +90,7 @@
 
     function showStep(step) {
       const isFirst = step === 1;
+      stepCount.textContent = `Step ${step} of 2`;
       step1.hidden = !isFirst;
       step2.hidden = isFirst;
       successState.hidden = true;
@@ -102,6 +103,7 @@
 
     function showSuccess() {
       step1.hidden = true;
+      stepCount.textContent = "Success";
       step2.hidden = true;
       successState.hidden = false;
       stepDots.forEach((dot) => dot.classList.add("is-complete"));
