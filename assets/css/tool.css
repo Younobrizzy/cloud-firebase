@@ -43,19 +43,22 @@ button {
   min-height: 100dvh;
   max-height: 100dvh;
   overflow: hidden;
-  padding: max(24px, env(safe-area-inset-top)) clamp(24px, 4vw, 48px) max(24px, env(safe-area-inset-bottom)) clamp(24px, 4vw, 48px);
+  padding: max(24px, env(safe-area-inset-top)) clamp(28px, 5vw, 72px) max(24px, env(safe-area-inset-bottom));
 }
 
 .tool-page {
-  width: min(100%, 1120px);
+  width: min(100%, 1240px);
   height: 100%;
-  min-height: 100dvh;
-  max-height: 100dvh;
+  min-height: 0;
+  max-height: none;
   margin: 0 auto;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .topbar {
+  flex: 0 0 56px;
   min-height: 56px;
   display: flex;
   align-items: center;
@@ -161,7 +164,9 @@ button:disabled {
 
 .tool-content {
   width: 100%;
-  margin-top: clamp(18px, 4vw, 36px);
+  flex: 1 1 auto;
+  min-height: 0;
+  margin-top: clamp(18px, 2.5vw, 28px);
 }
 
 .workspace,
@@ -176,9 +181,9 @@ button:disabled {
 }
 
 .formatter-card {
-  height: calc(100dvh - 112px);
+  height: 100%;
   min-height: 0;
-  max-height: calc(100dvh - 112px);
+  max-height: none;
   display: flex;
   flex-direction: column;
 }
