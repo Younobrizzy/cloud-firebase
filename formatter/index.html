@@ -36,8 +36,7 @@
           </div>
 
           <div class="field-group">
-            <label for="output">Formatted</label>
-            <pre id="output" class="output" aria-live="polite">Your formatted result will appear here.</pre>
+            <pre id="output" class="output" aria-live="polite"></pre>
           </div>
         </div>
       </div>
@@ -85,7 +84,7 @@
 
     clearButton.addEventListener("click", () => {
       input.value = "";
-      output.textContent = "Your formatted result will appear here.";
+      output.textContent = "";
       output.classList.remove("error");
       input.focus();
     });
