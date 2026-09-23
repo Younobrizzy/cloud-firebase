@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <title>Importer · Cloud Firebase</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png">
+  <link rel="shortcut icon" href="/assets/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+  <link rel="stylesheet" href="/assets/css/importer.css">
+</head>
+<body>
+  <main class="page">
+    <section class="importer-page" aria-label="Firestore importer">
+      <header class="topbar">
+        <a class="brand" href="/get-started/" aria-label="Back to Get Started">
+          <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+          <span class="brand-title">Cloud Firebase</span>
+        </a>
+        <a class="back-button" href="/get-started/">← Back</a>
+      </header>
+
+      <div class="importer-content">
+        <div class="importer-card">
+          <div class="steps" aria-label="Import steps">
+            <span class="step is-active" id="stepPill1">1. Firebase config</span>
+            <span class="step" id="stepPill2">2. JSON file</span>
+          </div>
+
+          <section class="step-panel" id="step1Panel">
+            <div class="panel-copy">
+              <h1>Connect Firebase</h1>
+              <p>Paste the Firebase Web config you want to use for this import.</p>
+            </div>
+
+            <textarea
+              id="configInput"
+              class="config-input"
+              autocomplete="off"
+              autocapitalize="off"
+              spellcheck="false"
+              placeholder='const firebaseConfig = {
+  apiKey: "AIza...",
+  authDomain: "project.firebaseapp.com",
+  projectId: "project-id",
+  storageBucket: "project.firebasestorage.app",
+  messagingSenderId: "123456789",
+  appId: "1:123456789:web:..."
+};'
+            ></textarea>
+
+            <p id="configError" class="message is-error" role="alert" aria-live="polite"></p>
+
+            <div class="step-actions">
+              <button class="primary-button" id="nextButton" type="button">Next</button>
+            </div>
+          </section>
+
+          <section class="step-panel" id="step2Panel" hidden>
+            <div class="panel-copy">
+              <h1>Upload JSON</h1>
+              <p>The JSON filename becomes the Firestore collection name.</p>
+            </div>
+
+            <label class="file-picker" for="jsonInput">
+              <input id="jsonInput" type="file" accept=".json,application/json">
+              <span class="file-picker-title">Choose JSON file</span>
+              <span id="fileName" class="file-name">No file selected</span>
+            </label>
+
+            <div class="collection-preview" id="collectionPreview" hidden>
+              <span>Collection</span>
+              <strong id="collectionName">—</strong>
+            </div>
+
+            <p id="fileError" class="message is-error" role="alert" aria-live="polite"></p>
+
+            <div class="step-actions split-actions">
+              <button class="secondary-button" id="backButton" type="button">Back</button>
+              <button class="primary-button" id="importButton" type="button" disabled>Import</button>
+            </div>
+          </section>
+
+          <section class="success-panel" id="successPanel" hidden>
+            <div class="success-icon" aria-hidden="true">✓</div>
+            <div class="panel-copy">
+              <h1>Import complete</h1>
+              <p id="successSummary">Your data has been imported.</p>
+            </div>
+
+            <div class="result-grid">
+              <div class="result-box">
+                <span>Collection</span>
+                <strong id="successCollection">—</strong>
+              </div>
+              <div class="result-box">
+                <span>Created</span>
+                <strong id="createdCount">0</strong>
+              </div>
+              <div class="result-box">
+                <span>Updated</span>
+                <strong id="updatedCount">0</strong>
+              </div>
+            </div>
+
+            <div class="step-actions">
+              <button class="primary-button" id="doneButton" type="button">Done</button>
+            </div>
+          </section>
+
+          <p id="globalStatus" class="message" role="status" aria-live="polite"></p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="/assets/js/importer.js"></script>
+</body>
+</html>
