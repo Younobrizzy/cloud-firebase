@@ -33,17 +33,15 @@
             <textarea
               id="pasteField"
               class="paste-field"
-              rows="4"
+              rows="8"
               inputmode="text"
               autocomplete="off"
               autocapitalize="off"
               spellcheck="false"
-              aria-label="Paste Firebase configuration"
+              aria-label="Firebase environment variables"
               placeholder="Tap and hold to paste your Firebase config"
             ></textarea>
           </div>
-
-          <pre id="output" class="output" aria-live="polite">Converted values will appear here.</pre>
           <p id="status" class="tool-status" role="status" aria-live="polite"></p>
         </div>
       </div>
@@ -54,7 +52,6 @@
     import { requireAuth } from "/assets/js/auth-guard.js";
 
     const pasteField = document.getElementById("pasteField");
-    const output = document.getElementById("output");
     const status = document.getElementById("status");
 
     const keys = [
@@ -101,24 +98,20 @@
       return keys.map(([key, envKey]) => `${envKey}=${values[key]}`).join("\n");
     }
 
-    function clearPasteField() {
-      pasteField.value = "";
-      pasteField.scrollTop = 0;
-    }
-
     function handlePastedText(source) {
-      clearPasteField();
-
       if (!source || !source.trim()) {
+        pasteField.value = "";
         setStatus("Nothing was pasted.", true);
         return;
       }
 
       try {
-        output.textContent = convertFirebaseConfig(source);
+        pasteField.value = convertFirebaseConfig(source);
+        pasteField.scrollTop = 0;
+        pasteField.selectionStart = pasteField.selectionEnd = 0;
         setStatus("Converted successfully.");
       } catch (error) {
-        output.textContent = "Converted values will appear here.";
+        pasteField.value = "";
         setStatus(error?.message || "The pasted text is not a valid Firebase Web config.", true);
       }
     }

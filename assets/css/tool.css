@@ -226,48 +226,28 @@ button:disabled {
 .paste-field {
   display: block;
   width: 100%;
-  min-height: clamp(112px, 20vw, 150px);
+  min-height: clamp(220px, 34vw, 320px);
   resize: none;
   padding: 15px;
   border: 1px solid #d7dce3;
   border-radius: 12px;
   background: #fafbfc;
-  color: transparent;
+  color: #111827;
   caret-color: #111827;
   outline: none;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 13px;
   line-height: 1.7;
   overflow: hidden;
-  -webkit-text-fill-color: transparent;
 }
 
 .paste-field::placeholder {
   color: #64748b;
-  -webkit-text-fill-color: #64748b;
 }
 
 .paste-field:focus {
   border-color: #9ca3af;
   box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.08);
-}
-
-.output {
-  width: 100%;
-  min-height: clamp(220px, 42vw, 340px);
-  margin: 16px 0 0;
-  padding: 16px;
-  border: 1px solid #d7dce3;
-  border-radius: 12px;
-  background: #fafbfc;
-  color: #111827;
-  overflow: auto;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: clamp(12px, 1.8vw, 13px);
-  line-height: 1.7;
 }
 
 .tool-status {
@@ -344,10 +324,6 @@ button:disabled {
     padding: 14px;
   }
 
-  .output {
-    min-height: 230px;
-    padding: 14px;
-  }
 }
 
 @media (max-width: 420px) {
