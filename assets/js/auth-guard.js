@@ -5,12 +5,13 @@ import {
   signOut
 } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
 
+let appPromise;
 let authPromise;
 
-async function getAuthInstance() {
-  if (authPromise) return authPromise;
+async function getFirebaseAppInstance() {
+  if (appPromise) return appPromise;
 
-  authPromise = (async () => {
+  appPromise = (async () => {
     const response = await fetch("/api/config", {
       headers: { Accept: "application/json" },
       cache: "no-store"
@@ -27,11 +28,24 @@ async function getAuthInstance() {
     }
 
     const firebaseConfig = await response.json();
-    const app = initializeApp(firebaseConfig);
-    return getAuth(app);
+    return initializeApp(firebaseConfig);
   })();
 
+  return appPromise;
+}
+
+async function getAuthInstance() {
+  if (authPromise) return authPromise;
+
+  authPromise = (async () => {
+    const app = await getFirebaseAppInstance();
+    return getAuth(app);
+  })();
   return authPromise;
+}
+
+export async function getFirebaseApp() {
+  return getFirebaseAppInstance();
 }
 
 export async function requireAuth({ onUser, onReady, onError } = {}) {
