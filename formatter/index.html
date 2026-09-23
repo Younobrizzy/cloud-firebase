@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#ffffff">
   <title>Formatter · Cloud Firebase</title>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
@@ -14,7 +14,7 @@
 </head>
 <body>
   <main class="page">
-    <section class="tool-page" aria-labelledby="pageTitle">
+    <section class="tool-page" aria-label="Firebase formatter">
       <header class="topbar">
         <a class="brand" href="/get-started/" aria-label="Back to Get Started">
           <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
@@ -23,18 +23,18 @@
         <a class="signout" href="/get-started/" aria-label="Back to Get Started">← Back</a>
       </header>
 
-      <div class="tool-content">
+      <div class="tool-content formatter-content">
         <div class="formatter-card">
-          <div class="field-group">
-            <label for="input">Input</label>
-            <textarea id="input" spellcheck="false" placeholder='Paste JSON here…'></textarea>
+          <div class="formatter-copy">
+            <p>Paste a Firebase Web config to convert it to Cloudflare environment variables.</p>
           </div>
 
           <div class="formatter-actions">
-            <button class="primary" id="formatButton" type="button">Format JSON</button>
-            <button class="secondary" id="clearButton" type="button">Clear</button>
+            <button class="primary paste-button" id="pasteButton" type="button">Paste</button>
           </div>
 
+          <pre id="output" class="output" aria-live="polite">Converted values will appear here.</pre>
+          <p id="status" class="tool-status" role="status" aria-live="polite"></p>
         </div>
       </div>
     </section>
@@ -43,37 +43,85 @@
   <script type="module">
     import { requireAuth } from "/assets/js/auth-guard.js";
 
-    const formatButton = document.getElementById("formatButton");
-    const clearButton = document.getElementById("clearButton");
-    const input = document.getElementById("input");
+    const pasteButton = document.getElementById("pasteButton");
+    const output = document.getElementById("output");
+    const status = document.getElementById("status");
 
-    requireAuth({
-      onUser: (_user, authInstance) => {
-        document.body.classList.add("ready");
+    const keys = [
+      ["apiKey", "FIREBASE_API_KEY"],
+      ["authDomain", "FIREBASE_AUTH_DOMAIN"],
+      ["projectId", "FIREBASE_PROJECT_ID"],
+      ["storageBucket", "FIREBASE_STORAGE_BUCKET"],
+      ["messagingSenderId", "FIREBASE_MESSAGING_SENDER_ID"],
+      ["appId", "FIREBASE_APP_ID"]
+    ];
+
+    function setStatus(message, isError = false) {
+      status.textContent = message;
+      status.classList.toggle("is-error", isError);
+    }
+
+    function extractFirebaseConfig(source) {
+      const clean = source
+        .replace(/\uFEFF/g, "")
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/(^|\n)\s*\/\/.*$/gm, "");
+
+      const values = {};
+
+      for (const [key] of keys) {
+        const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const pattern = new RegExp(
+          `(?:["']?${escapedKey}["']?)\\s*:\\s*["']([^"'\\n\\r]*)["']`,
+          "m"
+        );
+        const match = clean.match(pattern);
+        if (match) {
+          values[key] = match[1].replace(/\\:/g, ":");
+        }
       }
-    });
 
+      return values;
+    }
 
-    formatButton.addEventListener("click", () => {
-      const value = input.value.trim();
+    function convertFirebaseConfig(source) {
+      const values = extractFirebaseConfig(source);
+      const missing = keys.filter(([key]) => !values[key]).map(([, envKey]) => envKey);
 
-      if (!value) {
-        alert("Paste JSON into the input area first.");
-        return;
+      if (missing.length) {
+        throw new Error(`Missing: ${missing.join(", ")}`);
       }
+
+      return keys.map(([key, envKey]) => `${envKey}=${values[key]}`).join("\n");
+    }
+
+    async function pasteAndConvert() {
+      setStatus("");
+      pasteButton.disabled = true;
+      pasteButton.textContent = "Pasting…";
 
       try {
-        const parsed = JSON.parse(value);
-        input.value = JSON.stringify(parsed, null, 2);
+        const source = await navigator.clipboard.readText();
+        if (!source.trim()) {
+          throw new Error("Your clipboard is empty.");
+        }
+
+        output.textContent = convertFirebaseConfig(source);
+        setStatus("Converted successfully.");
       } catch (error) {
-        alert(`Invalid JSON: ${error.message}`);
+        output.textContent = "Converted values will appear here.";
+        setStatus(error?.message || "Could not read the clipboard.", true);
+      } finally {
+        pasteButton.disabled = false;
+        pasteButton.textContent = "Paste";
       }
+    }
+
+    requireAuth({
+      onUser: () => document.body.classList.add("ready")
     });
 
-    clearButton.addEventListener("click", () => {
-      input.value = "";
-      input.focus();
-    });
+    pasteButton.addEventListener("click", pasteAndConvert);
   </script>
 </body>
 </html>
