@@ -35,10 +35,6 @@
             <button class="secondary" id="clearButton" type="button">Clear</button>
           </div>
 
-          <div class="field-group">
-            <label for="output">Formatted</label>
-            <pre id="output" class="output" aria-live="polite">Your formatted result will appear here.</pre>
-          </div>
         </div>
       </div>
     </section>
@@ -50,7 +46,6 @@
     const formatButton = document.getElementById("formatButton");
     const clearButton = document.getElementById("clearButton");
     const input = document.getElementById("input");
-    const output = document.getElementById("output");
 
     requireAuth({
       onUser: (_user, authInstance) => {
@@ -63,25 +58,20 @@
       const value = input.value.trim();
 
       if (!value) {
-        output.textContent = "Paste JSON into the input area first.";
-        output.classList.add("error");
+        alert("Paste JSON into the input area first.");
         return;
       }
 
       try {
         const parsed = JSON.parse(value);
-        output.textContent = JSON.stringify(parsed, null, 2);
-        output.classList.remove("error");
+        input.value = JSON.stringify(parsed, null, 2);
       } catch (error) {
-        output.textContent = `Invalid JSON: ${error.message}`;
-        output.classList.add("error");
+        alert(`Invalid JSON: ${error.message}`);
       }
     });
 
     clearButton.addEventListener("click", () => {
       input.value = "";
-      output.textContent = "Your formatted result will appear here.";
-      output.classList.remove("error");
       input.focus();
     });
   </script>
