@@ -30,7 +30,17 @@
           </div>
 
           <div class="formatter-actions">
-            <button class="primary paste-button" id="pasteButton" type="button">Paste</button>
+            <textarea
+              id="pasteField"
+              class="paste-field"
+              rows="4"
+              inputmode="text"
+              autocomplete="off"
+              autocapitalize="off"
+              spellcheck="false"
+              aria-label="Paste Firebase configuration"
+              placeholder="Tap and hold to paste your Firebase config"
+            ></textarea>
           </div>
 
           <pre id="output" class="output" aria-live="polite">Converted values will appear here.</pre>
@@ -43,7 +53,7 @@
   <script type="module">
     import { requireAuth } from "/assets/js/auth-guard.js";
 
-    const pasteButton = document.getElementById("pasteButton");
+    const pasteField = document.getElementById("pasteField");
     const output = document.getElementById("output");
     const status = document.getElementById("status");
 
@@ -91,28 +101,14 @@
       return keys.map(([key, envKey]) => `${envKey}=${values[key]}`).join("\n");
     }
 
-    let waitingForManualPaste = false;
-
-    function resetPasteButton() {
-      pasteButton.disabled = false;
-      pasteButton.textContent = "Paste";
-    }
-
-    function showManualPasteFallback(reason = "") {
-      waitingForManualPaste = true;
-      resetPasteButton();
-
-      const prefix = reason ? `${reason} ` : "";
-      setStatus(
-        `${prefix}Press Ctrl+V (or ⌘V) now to paste from your clipboard.`,
-        true
-      );
-
-      window.focus();
-      pasteButton.focus();
+    function clearPasteField() {
+      pasteField.value = "";
+      pasteField.scrollTop = 0;
     }
 
     function handlePastedText(source) {
+      clearPasteField();
+
       if (!source || !source.trim()) {
         setStatus("Nothing was pasted.", true);
         return;
@@ -127,73 +123,19 @@
       }
     }
 
-    async function getClipboardPermissionState() {
-      try {
-        if (!navigator.permissions?.query) return "unknown";
-        const permission = await navigator.permissions.query({ name: "clipboard-read" });
-        return permission.state || "unknown";
-      } catch {
-        return "unknown";
-      }
-    }
-
-    async function requestClipboardAndConvert() {
-      setStatus("");
-      pasteButton.disabled = true;
-      pasteButton.textContent = "Requesting access…";
-
-      try {
-        if (!window.isSecureContext || !navigator.clipboard?.readText) {
-          throw new DOMException("Clipboard API unavailable", "NotAllowedError");
-        }
-
-        const permissionState = await getClipboardPermissionState();
-
-        // Calling readText() directly from the button click is the browser-supported
-        // way to request clipboard-read permission when the state is "prompt".
-        pasteButton.textContent = permissionState === "granted"
-          ? "Pasting…"
-          : "Allow clipboard…";
-
-        const source = await navigator.clipboard.readText();
-
-        waitingForManualPaste = false;
-        resetPasteButton();
-
-        if (!source.trim()) {
-          setStatus("Your clipboard is empty.", true);
-          return;
-        }
-
-        handlePastedText(source);
-      } catch (error) {
-        const name = error?.name || "";
-
-        if (name === "NotAllowedError" || name === "SecurityError" || name === "AbortError") {
-          const state = await getClipboardPermissionState();
-
-          if (state === "denied") {
-            showManualPasteFallback("Clipboard permission is blocked in this browser.");
-          } else {
-            showManualPasteFallback("Clipboard permission was not granted.");
-          }
-          return;
-        }
-
-        resetPasteButton();
-        showManualPasteFallback("Clipboard access is unavailable.");
-      }
-    }
-
-    // Keep Ctrl+V / Cmd+V working even when clipboard-read permission is unavailable.
-    document.addEventListener("paste", (event) => {
-      if (!waitingForManualPaste) return;
-
-      const source = event.clipboardData?.getData("text/plain") || event.clipboardData?.getData("text");
-      if (!source) return;
-
+    // Native paste keeps the mobile long-press paste menu working and also supports Ctrl+V / Cmd+V.
+    pasteField.addEventListener("paste", (event) => {
+      const source = event.clipboardData?.getData("text/plain") || event.clipboardData?.getData("text") || "";
       event.preventDefault();
-      waitingForManualPaste = false;
+      handlePastedText(source);
+    });
+
+    // Fallback for browsers that expose pasted content through beforeinput first.
+    pasteField.addEventListener("beforeinput", (event) => {
+      if (event.inputType !== "insertFromPaste") return;
+      const source = event.dataTransfer?.getData("text/plain") || event.dataTransfer?.getData("text") || "";
+      if (!source) return;
+      event.preventDefault();
       handlePastedText(source);
     });
 
@@ -201,6 +143,5 @@
       onUser: () => document.body.classList.add("ready")
     });
 
-    pasteButton.addEventListener("click", requestClipboardAndConvert);
   </script></body>
 </html>
