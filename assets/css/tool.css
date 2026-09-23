@@ -175,6 +175,14 @@ button:disabled {
   box-shadow: 0 14px 40px rgba(15, 23, 42, 0.06);
 }
 
+.formatter-card {
+  height: calc(100dvh - 112px);
+  min-height: 0;
+  max-height: calc(100dvh - 112px);
+  display: flex;
+  flex-direction: column;
+}
+
 .workspace-header {
   display: flex;
   align-items: center;
@@ -230,6 +238,8 @@ button:disabled {
 
 .formatter-actions {
   display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
   flex-direction: column;
   width: 100%;
   margin-top: 18px;
@@ -238,24 +248,31 @@ button:disabled {
 
 .paste-field {
   display: block;
+  flex: 1 1 auto;
   width: 100%;
-  min-height: clamp(180px, 30vw, 300px);
+  min-width: 0;
+  min-height: 0;
   resize: none;
-  padding: 15px;
+  padding: clamp(12px, 1.6vw, 18px);
   border: 1px solid #d7dce3;
   border-radius: 12px;
   background: #fafbfc;
-  color: #111827;
-  caret-color: #111827;
+  color: transparent;
+  caret-color: transparent;
   outline: none;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 13px;
-  line-height: 1.7;
+  font-size: clamp(7px, 1.35vw, 13px);
+  line-height: 1.55;
+  white-space: pre;
   overflow: hidden;
+  overflow-wrap: normal;
+  word-break: keep-all;
 }
 
 .paste-field::placeholder {
-  color: #64748b;
+  color: #111827;
+  opacity: 1;
+  white-space: pre;
 }
 
 .paste-field:focus {
@@ -263,12 +280,21 @@ button:disabled {
   box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.08);
 }
 
-.copy-button {
+.formatter-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
   width: 100%;
+  flex: 0 0 auto;
+}
+
+.copy-button,
+.clear-button {
+  width: 100%;
+  min-width: 0;
   min-height: 44px;
   border: 1px solid #d7dce3;
   border-radius: 10px;
-  background: #111827;
   color: #fff;
   font-weight: 750;
   cursor: pointer;
@@ -276,19 +302,39 @@ button:disabled {
   touch-action: manipulation;
 }
 
-.copy-button:hover:not(:disabled) {
+.copy-button {
+  background: #111827;
+}
+
+.clear-button {
+  background: #fff;
+  color: #111827;
+}
+
+.copy-button:hover:not(:disabled),
+.clear-button:hover:not(:disabled) {
   transform: translateY(-1px);
 }
 
-.copy-button:active:not(:disabled) {
+.copy-button:active:not(:disabled),
+.clear-button:active:not(:disabled) {
   transform: translateY(0);
 }
 
-.copy-button:disabled {
+.copy-button:disabled,
+.clear-button:disabled {
   background: #e5e7eb;
   border-color: #e5e7eb;
   color: #9ca3af;
   cursor: not-allowed;
+}
+
+.formatter-hint {
+  flex: 0 0 auto;
+  margin: 8px 0 0;
+  color: #64748b;
+  font-size: clamp(12px, 1.4vw, 13px);
+  line-height: 1.4;
 }
 
 .tool-status {
@@ -358,16 +404,23 @@ button:disabled {
     box-shadow: none;
   }
 
+  .formatter-card {
+    height: calc(100dvh - 68px);
+    max-height: calc(100dvh - 68px);
+  }
+
   .formatter-actions {
     margin-top: 16px;
   }
 
   .paste-field {
-    min-height: 118px;
+    min-height: 0;
     padding: 14px;
+    font-size: clamp(7px, 2.15vw, 11px);
   }
 
-  .copy-button {
+  .copy-button,
+  .clear-button {
     min-height: 46px;
   }
 
@@ -459,6 +512,11 @@ button:disabled {
     background: #fff;
   }
 
+  .formatter-card {
+    display: flex;
+    flex-direction: column;
+  }
+
   .workspace-header {
     gap: 10px;
   }
@@ -469,12 +527,13 @@ button:disabled {
   }
 
   .paste-field {
-    height: min(42dvh, 300px);
-    min-height: 150px;
-    max-height: 300px;
+    min-height: 0;
     border-radius: 10px;
-    font-size: 13px;
-    line-height: 1.55;
+    font-size: clamp(7px, 2.25vw, 11px);
+  }
+
+  .formatter-buttons {
+    gap: 8px;
   }
 }
 

@@ -34,15 +34,20 @@
               id="pasteField"
               class="paste-field"
               rows="8"
-              inputmode="text"
+              inputmode="none"
               autocomplete="off"
               autocapitalize="off"
               spellcheck="false"
-              aria-label="Firebase environment variables"
+              aria-label="Paste Firebase config and view converted environment variables"
+              aria-describedby="formatterHint"
               placeholder="Tap and hold to paste your Firebase config"
             ></textarea>
-            <button id="copyButton" class="copy-button" type="button" disabled>Copy</button>
+            <div class="formatter-buttons">
+              <button id="copyButton" class="copy-button" type="button" disabled>Copy</button>
+              <button id="clearButton" class="clear-button" type="button" disabled>Clear</button>
+            </div>
           </div>
+          <p id="formatterHint" class="formatter-hint">Paste only. Typing is disabled.</p>
           <p id="status" class="tool-status" role="status" aria-live="polite"></p>
         </div>
       </div>
@@ -54,6 +59,7 @@
 
     const pasteField = document.getElementById("pasteField");
     const copyButton = document.getElementById("copyButton");
+    const clearButton = document.getElementById("clearButton");
     const status = document.getElementById("status");
 
     const keys = [
@@ -64,6 +70,8 @@
       ["messagingSenderId", "FIREBASE_MESSAGING_SENDER_ID"],
       ["appId", "FIREBASE_APP_ID"]
     ];
+
+    let formattedValue = "";
 
     function setStatus(message, isError = false) {
       status.textContent = message;
@@ -100,33 +108,41 @@
       return keys.map(([key, envKey]) => `${envKey}=${values[key]}`).join("\n");
     }
 
-    function updateCopyState() {
-      copyButton.disabled = !pasteField.value.trim();
+    function updateButtonState() {
+      const enabled = Boolean(formattedValue);
+      copyButton.disabled = !enabled;
+      clearButton.disabled = !enabled;
+    }
+
+    function clearFormatted() {
+      formattedValue = "";
+      pasteField.value = "";
+      pasteField.placeholder = "Tap and hold to paste your Firebase config";
+      updateButtonState();
+      setStatus("");
     }
 
     function handlePastedText(source) {
       if (!source || !source.trim()) {
-        pasteField.value = "";
-        updateCopyState();
+        clearFormatted();
         setStatus("Nothing was pasted.", true);
         return;
       }
 
       try {
-        const converted = convertFirebaseConfig(source);
-        pasteField.value = converted;
+        formattedValue = convertFirebaseConfig(source);
+        pasteField.value = "";
+        pasteField.placeholder = formattedValue;
         pasteField.scrollTop = 0;
-        pasteField.selectionStart = pasteField.selectionEnd = 0;
-        updateCopyState();
+        updateButtonState();
         setStatus("Converted successfully.");
       } catch (error) {
-        pasteField.value = "";
-        updateCopyState();
+        clearFormatted();
         setStatus(error?.message || "The pasted text is not a valid Firebase Web config.", true);
       }
     }
 
-    // Block manual typing/editing while keeping native paste available on desktop and mobile.
+    // Typing is disabled. Paste remains available through Ctrl+V/Cmd+V and the native mobile paste menu.
     pasteField.addEventListener("keydown", (event) => {
       const pasteShortcut = (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "v";
       const navigation = ["Tab", "Shift", "Control", "Meta", "Alt", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"];
@@ -139,43 +155,42 @@
       event.preventDefault();
     });
 
-    // Native paste keeps the mobile long-press paste menu working and also supports Ctrl+V / Cmd+V.
     pasteField.addEventListener("paste", (event) => {
       const source = event.clipboardData?.getData("text/plain") || event.clipboardData?.getData("text") || "";
       event.preventDefault();
       handlePastedText(source);
     });
 
-    // Keep accidental input from changing the converted value.
-    pasteField.addEventListener("input", () => {
-      updateCopyState();
+    pasteField.addEventListener("input", (event) => {
+      // Never let the field retain typed text or pasted text. The converted value lives in the placeholder.
+      if (event.inputType !== "insertFromPaste") pasteField.value = "";
     });
 
-    pasteField.addEventListener("drop", (event) => {
-      event.preventDefault();
-    });
-
-    pasteField.addEventListener("dragover", (event) => {
-      event.preventDefault();
-    });
+    pasteField.addEventListener("drop", (event) => event.preventDefault());
+    pasteField.addEventListener("dragover", (event) => event.preventDefault());
 
     copyButton.addEventListener("click", async () => {
-      const value = pasteField.value.trim();
-      if (!value) return;
+      if (!formattedValue) return;
 
       try {
-        await navigator.clipboard.writeText(value);
+        await navigator.clipboard.writeText(formattedValue);
         setStatus("Copied to clipboard.");
       } catch {
-        pasteField.focus();
-        pasteField.select();
+        const helper = document.createElement("textarea");
+        helper.value = formattedValue;
+        helper.setAttribute("readonly", "");
+        helper.style.position = "fixed";
+        helper.style.opacity = "0";
+        document.body.appendChild(helper);
+        helper.select();
         const copied = document.execCommand("copy");
-        pasteField.selectionStart = pasteField.selectionEnd = 0;
+        helper.remove();
         setStatus(copied ? "Copied to clipboard." : "Copy permission was denied.", !copied);
       }
     });
 
-    updateCopyState();
+    clearButton.addEventListener("click", clearFormatted);
+    updateButtonState();
 
     requireAuth({
       onUser: () => document.body.classList.add("ready")
