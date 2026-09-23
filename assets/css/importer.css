@@ -384,7 +384,13 @@ label:focus-visible {
   .step-copy p,
   .success-state > p { font-size: 14px; }
   .step-actions { gap: 8px; }
-  .config-field { margin-top: 14px; font-size: clamp(8px, 2.45vw, 12px); border-radius: 10px; }
+  .config-field {
+    flex: 0 0 clamp(180px, 40dvh, 300px);
+    height: clamp(180px, 40dvh, 300px);
+    margin-top: 14px;
+    font-size: clamp(8px, 2.45vw, 12px);
+    border-radius: 10px;
+  }
   .upload-area { min-height: 160px; margin-top: 14px; }
   .file-meta,
   .result-grid { grid-template-columns: 1fr; gap: 8px; }
