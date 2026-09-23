@@ -1,13 +1,9 @@
 import { requireAuth, logout } from "/assets/js/auth-guard.js";
 
-const firestoreButton = document.getElementById("firestoreButton");
 const formatterButton = document.getElementById("formatterButton");
 const importerButton = document.getElementById("importerButton");
 const logoutButton = document.getElementById("logoutButton");
 
-firestoreButton?.addEventListener("click", () => {
-  window.location.href = "/firestore/";
-});
 
 formatterButton?.addEventListener("click", () => {
   window.location.href = "/formatter/";
