@@ -41,6 +41,7 @@
               aria-label="Firebase environment variables"
               placeholder="Tap and hold to paste your Firebase config"
             ></textarea>
+            <button id="copyButton" class="copy-button" type="button" disabled>Copy</button>
           </div>
           <p id="status" class="tool-status" role="status" aria-live="polite"></p>
         </div>
@@ -52,6 +53,7 @@
     import { requireAuth } from "/assets/js/auth-guard.js";
 
     const pasteField = document.getElementById("pasteField");
+    const copyButton = document.getElementById("copyButton");
     const status = document.getElementById("status");
 
     const keys = [
@@ -98,23 +100,44 @@
       return keys.map(([key, envKey]) => `${envKey}=${values[key]}`).join("\n");
     }
 
+    function updateCopyState() {
+      copyButton.disabled = !pasteField.value.trim();
+    }
+
     function handlePastedText(source) {
       if (!source || !source.trim()) {
         pasteField.value = "";
+        updateCopyState();
         setStatus("Nothing was pasted.", true);
         return;
       }
 
       try {
-        pasteField.value = convertFirebaseConfig(source);
+        const converted = convertFirebaseConfig(source);
+        pasteField.value = converted;
         pasteField.scrollTop = 0;
         pasteField.selectionStart = pasteField.selectionEnd = 0;
+        updateCopyState();
         setStatus("Converted successfully.");
       } catch (error) {
         pasteField.value = "";
+        updateCopyState();
         setStatus(error?.message || "The pasted text is not a valid Firebase Web config.", true);
       }
     }
+
+    // Block manual typing/editing while keeping native paste available on desktop and mobile.
+    pasteField.addEventListener("keydown", (event) => {
+      const pasteShortcut = (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "v";
+      const navigation = ["Tab", "Shift", "Control", "Meta", "Alt", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"];
+      if (pasteShortcut || navigation.includes(event.key)) return;
+      event.preventDefault();
+    });
+
+    pasteField.addEventListener("beforeinput", (event) => {
+      if (event.inputType === "insertFromPaste") return;
+      event.preventDefault();
+    });
 
     // Native paste keeps the mobile long-press paste menu working and also supports Ctrl+V / Cmd+V.
     pasteField.addEventListener("paste", (event) => {
@@ -123,14 +146,36 @@
       handlePastedText(source);
     });
 
-    // Fallback for browsers that expose pasted content through beforeinput first.
-    pasteField.addEventListener("beforeinput", (event) => {
-      if (event.inputType !== "insertFromPaste") return;
-      const source = event.dataTransfer?.getData("text/plain") || event.dataTransfer?.getData("text") || "";
-      if (!source) return;
-      event.preventDefault();
-      handlePastedText(source);
+    // Keep accidental input from changing the converted value.
+    pasteField.addEventListener("input", () => {
+      updateCopyState();
     });
+
+    pasteField.addEventListener("drop", (event) => {
+      event.preventDefault();
+    });
+
+    pasteField.addEventListener("dragover", (event) => {
+      event.preventDefault();
+    });
+
+    copyButton.addEventListener("click", async () => {
+      const value = pasteField.value.trim();
+      if (!value) return;
+
+      try {
+        await navigator.clipboard.writeText(value);
+        setStatus("Copied to clipboard.");
+      } catch {
+        pasteField.focus();
+        pasteField.select();
+        const copied = document.execCommand("copy");
+        pasteField.selectionStart = pasteField.selectionEnd = 0;
+        setStatus(copied ? "Copied to clipboard." : "Copy permission was denied.", !copied);
+      }
+    });
+
+    updateCopyState();
 
     requireAuth({
       onUser: () => document.body.classList.add("ready")
