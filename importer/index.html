@@ -238,6 +238,7 @@
       derivedCollection = "";
       jsonFile.value = "";
       fileMeta.hidden = true;
+      uploadArea.hidden = false;
       uploadTitle.textContent = "Choose a JSON file";
       uploadText.textContent = "Tap here to select a .json file";
       setStatus(fileStatus, "");
@@ -338,6 +339,7 @@
         collectionName.textContent = derivedCollection;
         documentCount.textContent = String(parsed.length);
         fileMeta.hidden = false;
+        uploadArea.hidden = true;
         uploadTitle.textContent = "JSON ready";
         uploadText.textContent = "Tap to choose a different file";
         importButton.disabled = false;
