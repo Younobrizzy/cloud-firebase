@@ -234,6 +234,13 @@ label:focus-visible {
   margin-top: 12px;
 }
 
+.import-actions {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
 .upload-area {
   width: 100%;
   min-height: 190px;
@@ -272,31 +279,6 @@ label:focus-visible {
 
 .upload-area strong { font-size: 15px; }
 .upload-area span:last-child { color: #64748b; font-size: 13px; }
-
-.clear-file-button {
-  width: 100%;
-  min-height: 44px;
-  margin-top: 10px;
-  padding: 0 16px;
-  border: 1px solid #d7dce3;
-  border-radius: 10px;
-  background: #fff;
-  color: #111827;
-  font-weight: 700;
-  cursor: pointer;
-  transition: transform .16s ease, background .16s ease, border-color .16s ease;
-  touch-action: manipulation;
-}
-
-.clear-file-button:hover {
-  transform: translateY(-1px);
-  background: #f8fafc;
-}
-
-.clear-file-button:focus-visible {
-  outline: 3px solid rgba(17, 24, 39, .16);
-  outline-offset: 2px;
-}
 
 .file-meta,
 .result-grid {

@@ -23,6 +23,7 @@
     const documentCount = document.getElementById("documentCount");
     const fileStatus = document.getElementById("fileStatus");
     const importButton = document.getElementById("importButton");
+    const clearFileButton = document.getElementById("clearFileButton");
     const step1 = document.getElementById("step1");
     const step2 = document.getElementById("step2");
     const successState = document.getElementById("successState");
@@ -116,8 +117,10 @@
       derivedCollection = "";
       jsonFile.value = "";
       fileMeta.hidden = true;
+      uploadArea.hidden = false;
       uploadTitle.hidden = false;
       uploadText.hidden = false;
+      clearFileButton.hidden = true;
       uploadTitle.textContent = "Choose a JSON file";
       uploadText.textContent = "Tap here to select a .json file";
       setStatus(fileStatus, "");
@@ -218,8 +221,8 @@
         collectionName.textContent = derivedCollection;
         documentCount.textContent = String(parsed.length);
         fileMeta.hidden = false;
-        uploadTitle.hidden = true;
-        uploadText.hidden = true;
+        uploadArea.hidden = true;
+        clearFileButton.hidden = false;
         importButton.disabled = false;
         setStatus(fileStatus, "JSON is ready to import.");
       } catch (error) {
@@ -227,10 +230,17 @@
         parsedDocuments = null;
         derivedCollection = "";
         fileMeta.hidden = true;
+        uploadArea.hidden = false;
+        clearFileButton.hidden = true;
         importButton.disabled = true;
         setStatus(fileStatus, error?.message || "Unable to read the JSON file.", true);
       }
     }
+
+
+    clearFileButton.addEventListener("click", () => {
+      resetStep2();
+    });
 
     importButton.addEventListener("click", async () => {
       if (!targetDb || !parsedDocuments || !derivedCollection) return;
