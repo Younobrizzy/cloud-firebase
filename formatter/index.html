@@ -20,7 +20,7 @@
           <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
           <span class="brand-title">Cloud Firebase</span>
         </a>
-        <button class="signout" id="logoutButton" type="button">Sign out</button>
+        <a class="signout" href="/get-started/" aria-label="Back to Get Started">← Back</a>
       </header>
 
       <div class="tool-content">
@@ -36,7 +36,8 @@
           </div>
 
           <div class="field-group">
-            <pre id="output" class="output" aria-live="polite"></pre>
+            <label for="output">Formatted</label>
+            <pre id="output" class="output" aria-live="polite">Your formatted result will appear here.</pre>
           </div>
         </div>
       </div>
@@ -44,24 +45,19 @@
   </main>
 
   <script type="module">
-    import { requireAuth, logout } from "/assets/js/auth-guard.js";
+    import { requireAuth } from "/assets/js/auth-guard.js";
 
-    const logoutButton = document.getElementById("logoutButton");
     const formatButton = document.getElementById("formatButton");
     const clearButton = document.getElementById("clearButton");
     const input = document.getElementById("input");
     const output = document.getElementById("output");
 
-    let auth = null;
-
     requireAuth({
       onUser: (_user, authInstance) => {
-        auth = authInstance;
         document.body.classList.add("ready");
       }
     });
 
-    logoutButton.addEventListener("click", () => logout(auth, logoutButton));
 
     formatButton.addEventListener("click", () => {
       const value = input.value.trim();
@@ -84,7 +80,7 @@
 
     clearButton.addEventListener("click", () => {
       input.value = "";
-      output.textContent = "";
+      output.textContent = "Your formatted result will appear here.";
       output.classList.remove("error");
       input.focus();
     });

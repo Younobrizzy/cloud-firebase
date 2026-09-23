@@ -20,7 +20,7 @@
           <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
           <span class="brand-title">Cloud Firebase</span>
         </a>
-        <button class="signout" id="logoutButton" type="button">Sign out</button>
+        <a class="signout" href="/get-started/" aria-label="Back to Get Started">← Back</a>
       </header>
 
       <div class="tool-content">
@@ -38,19 +38,14 @@
   </main>
 
   <script type="module">
-    import { requireAuth, logout } from "/assets/js/auth-guard.js";
-
-    const logoutButton = document.getElementById("logoutButton");
-    let auth = null;
+    import { requireAuth } from "/assets/js/auth-guard.js";
 
     requireAuth({
       onUser: (_user, authInstance) => {
-        auth = authInstance;
         document.body.classList.add("ready");
       }
     });
 
-    logoutButton.addEventListener("click", () => logout(auth, logoutButton));
   </script>
 </body>
 </html>
