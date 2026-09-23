@@ -23,22 +23,20 @@
         <a class="back-button" href="/get-started/" aria-label="Back to Get Started">← Back</a>
       </header>
 
+      <div class="stepper page-stepper" aria-label="Import progress">
+        <span class="step-count" id="stepCount">Step 1 of 2</span>
+        <span class="step-dot is-active" data-step-dot="1">1</span>
+        <span class="step-line"></span>
+        <span class="step-dot" data-step-dot="2">2</span>
+      </div>
+
       <div class="importer-shell">
         <div class="importer-card">
-          <div class="stepper" aria-label="Import progress">
-            <span class="step-dot is-active" data-step-dot="1">1</span>
-            <span class="step-line"></span>
-            <span class="step-dot" data-step-dot="2">2</span>
-          </div>
-
           <section class="import-step is-active" id="step1" aria-labelledby="step1Title">
             <div class="step-copy">
-              <span class="step-label">Step 1 of 2</span>
-              <h1 id="step1Title">Connect Firebase</h1>
-              <p>Paste your Firebase Web config, then continue to choose the JSON data to import.</p>
+              <p id="step1Title">Paste your Firebase Web config, then continue to choose the JSON data to import.</p>
             </div>
 
-            <label class="field-label" for="firebaseConfig">Firebase Web config</label>
             <textarea
               id="firebaseConfig"
               class="config-field"
@@ -59,7 +57,6 @@
 
           <section class="import-step" id="step2" aria-labelledby="step2Title" hidden>
             <div class="step-copy">
-              <span class="step-label">Step 2 of 2</span>
               <h1 id="step2Title">Upload JSON</h1>
               <p>Choose a JSON file. Its filename becomes the Firestore collection name.</p>
             </div>
@@ -97,7 +94,6 @@
 
           <section class="success-state" id="successState" aria-labelledby="successTitle" hidden>
             <div class="success-icon" aria-hidden="true">✓</div>
-            <span class="step-label">Import complete</span>
             <h1 id="successTitle">JSON imported</h1>
             <p id="successSummary">Your documents were imported successfully.</p>
 
@@ -160,6 +156,7 @@
     const createdCount = document.getElementById("createdCount");
     const updatedCount = document.getElementById("updatedCount");
     const stepDots = [...document.querySelectorAll("[data-step-dot]")];
+    const stepCount = document.getElementById("stepCount");
 
     let targetConfig = null;
     let targetDb = null;
@@ -221,6 +218,7 @@
       step1.hidden = !isFirst;
       step2.hidden = isFirst;
       successState.hidden = true;
+      if (stepCount) stepCount.textContent = `Step ${step} of 2`;
       stepDots.forEach((dot) => {
         const current = Number(dot.dataset.stepDot);
         dot.classList.toggle("is-active", current === step);
@@ -232,6 +230,7 @@
       step1.hidden = true;
       step2.hidden = true;
       successState.hidden = false;
+      if (stepCount) stepCount.textContent = "Complete";
       stepDots.forEach((dot) => dot.classList.add("is-complete"));
       stepDots.forEach((dot) => dot.classList.remove("is-active"));
     }
