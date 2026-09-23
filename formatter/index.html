@@ -95,27 +95,73 @@
       return keys.map(([key, envKey]) => `${envKey}=${values[key]}`).join("\n");
     }
 
+    let waitingForManualPaste = false;
+
+    function showManualPasteFallback() {
+      waitingForManualPaste = true;
+      pasteButton.disabled = false;
+      pasteButton.textContent = "Paste";
+      setStatus("Clipboard access is blocked by your browser. Press Ctrl+V (or ⌘V) now to paste.", true);
+      pasteButton.focus();
+    }
+
+    function handlePastedText(source) {
+      if (!source || !source.trim()) {
+        setStatus("Nothing was pasted.", true);
+        return;
+      }
+
+      try {
+        output.textContent = convertFirebaseConfig(source);
+        setStatus("Converted successfully.");
+      } catch (error) {
+        output.textContent = "Converted values will appear here.";
+        setStatus(error?.message || "The pasted text is not a valid Firebase Web config.", true);
+      }
+    }
+
     async function pasteAndConvert() {
       setStatus("");
       pasteButton.disabled = true;
       pasteButton.textContent = "Pasting…";
 
       try {
-        const source = await navigator.clipboard.readText();
-        if (!source.trim()) {
-          throw new Error("Your clipboard is empty.");
+        if (!navigator.clipboard || !window.isSecureContext) {
+          throw new DOMException("Clipboard API unavailable", "NotAllowedError");
         }
 
-        output.textContent = convertFirebaseConfig(source);
-        setStatus("Converted successfully.");
+        const source = await navigator.clipboard.readText();
+        if (!source.trim()) {
+          setStatus("Your clipboard is empty.", true);
+          return;
+        }
+
+        handlePastedText(source);
       } catch (error) {
-        output.textContent = "Converted values will appear here.";
-        setStatus(error?.message || "Could not read the clipboard.", true);
-      } finally {
+        if (error?.name === "NotAllowedError" || error?.name === "SecurityError") {
+          showManualPasteFallback();
+          return;
+        }
+
         pasteButton.disabled = false;
         pasteButton.textContent = "Paste";
+        setStatus("Could not read the clipboard. Press Ctrl+V (or ⌘V) to paste.", true);
+      } finally {
+        if (pasteButton.textContent !== "Paste") {
+          pasteButton.disabled = false;
+          pasteButton.textContent = "Paste";
+        }
       }
     }
+
+    document.addEventListener("paste", (event) => {
+      if (!waitingForManualPaste) return;
+      const source = event.clipboardData?.getData("text");
+      if (!source) return;
+      event.preventDefault();
+      waitingForManualPaste = false;
+      handlePastedText(source);
+    });
 
     requireAuth({
       onUser: () => document.body.classList.add("ready")
