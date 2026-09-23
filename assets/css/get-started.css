@@ -1,35 +1,38 @@
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
-html,
-body {
+html, body {
   width: 100%;
   height: 100%;
   margin: 0;
 }
 
+html { overflow: hidden; }
+
 body {
+  min-width: 320px;
+  min-height: 100dvh;
+  overflow: hidden;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: #111827;
   background: #f5f6f8;
 }
 
-button {
-  font: inherit;
-}
+button { font: inherit; }
+button, a { -webkit-tap-highlight-color: transparent; }
 
 .page {
   width: 100%;
+  height: 100dvh;
   min-height: 100dvh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: clamp(24px, 5vw, 72px);
+  padding: clamp(24px, 4vw, 56px);
+  overflow: hidden;
+  display: grid;
+  place-items: center;
 }
 
 .get-started {
-  width: min(100%, 540px);
+  width: min(100%, 560px);
+  max-height: calc(100dvh - 2 * clamp(24px, 4vw, 56px));
 }
 
 .brand {
@@ -37,7 +40,7 @@ button {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  margin-bottom: 18px;
+  margin: 0 0 18px;
 }
 
 .brand-mark {
@@ -58,76 +61,106 @@ button {
   border-radius: 4px;
   background: #fff;
 }
-
-.brand-mark span:nth-child(1) {
-  height: 38%;
-}
-
-.brand-mark span:nth-child(2) {
-  height: 68%;
-}
-
-.brand-mark span:nth-child(3) {
-  height: 100%;
-}
+.brand-mark span:nth-child(1) { height: 38%; }
+.brand-mark span:nth-child(2) { height: 68%; }
+.brand-mark span:nth-child(3) { height: 100%; }
 
 .brand-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 17px;
   font-weight: 750;
   letter-spacing: -0.02em;
 }
 
 .content {
-  padding: 38px;
+  width: 100%;
+  padding: clamp(26px, 4vw, 40px);
   border: 1px solid #e1e4e8;
-  border-radius: 22px;
+  border-radius: 20px;
   background: #fff;
   box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
   text-align: center;
 }
 
 .eyebrow {
+  margin: 0 0 10px;
   color: #64748b;
   font-size: 13px;
   font-weight: 700;
-  letter-spacing: 0.01em;
-  margin-bottom: 10px;
 }
 
 h1 {
   margin: 0;
-  font-size: clamp(34px, 6vw, 48px);
+  font-size: clamp(32px, 5vw, 46px);
   line-height: 1;
   letter-spacing: -0.05em;
 }
 
 .intro {
   max-width: 420px;
-  margin: 16px auto 0;
+  margin: 14px auto 0;
   color: #64748b;
   font-size: 15px;
   line-height: 1.6;
 }
 
+.account-pill {
+  width: 100%;
+  max-width: 420px;
+  margin: 20px auto 0;
+  min-height: 42px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  color: #475569;
+  background: #f8fafc;
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.account-pill span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-dot {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-radius: 50%;
+  background: #16a34a;
+}
+
 .tool-buttons {
+  width: 100%;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  width: 100%;
-  margin-top: 28px;
+  gap: 12px;
+  margin-top: 26px;
 }
 
 .tool-button,
 .secondary-button {
   width: 100%;
+  min-width: 0;
   min-height: 48px;
+  padding: 0 16px;
   border-radius: 10px;
   cursor: pointer;
-  transition: transform 0.16s ease, opacity 0.16s ease, background 0.16s ease, border-color 0.16s ease;
+  transition: transform .16s ease, background .16s ease, border-color .16s ease, opacity .16s ease;
 }
 
 .tool-button {
-  border: 0;
+  border: 1px solid #111827;
   background: #111827;
   color: #fff;
   font-size: 14px;
@@ -135,7 +168,7 @@ h1 {
 }
 
 .secondary-button {
-  margin-top: 10px;
+  margin-top: 12px;
   border: 1px solid #d7dce3;
   background: #fff;
   color: #111827;
@@ -144,49 +177,45 @@ h1 {
 }
 
 .tool-button:hover,
-.secondary-button:hover {
-  transform: translateY(-1px);
-}
-
+.secondary-button:hover { transform: translateY(-1px); }
 .tool-button:active,
-.secondary-button:active {
-  transform: translateY(0);
+.secondary-button:active { transform: translateY(0); }
+button:disabled { opacity: .6; cursor: wait; transform: none; }
+
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid rgba(17, 24, 39, .16);
+  outline-offset: 2px;
 }
 
-button:disabled {
-  opacity: 0.6;
-  cursor: wait;
-  transform: none;
-}
-
-@media (max-width: 600px) {
-  body {
-    background: #fff;
-  }
+@media (max-width: 760px) {
+  html, body { background: #fff; }
 
   .page {
-    min-height: 100dvh;
+    display: block;
     padding: 0;
-    align-items: flex-start;
   }
 
   .get-started {
     width: 100%;
+    height: 100dvh;
     min-height: 100dvh;
+    max-height: none;
     display: flex;
     flex-direction: column;
   }
 
   .brand {
     justify-content: flex-start;
+    flex: 0 0 auto;
     margin: 0;
-    padding: 24px 22px 14px;
+    padding: max(20px, env(safe-area-inset-top)) 22px 14px;
   }
 
   .content {
-    flex: 1;
-    min-height: calc(100dvh - 78px);
-    padding: 72px 22px 28px;
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 24px 22px max(24px, env(safe-area-inset-bottom));
     border: 0;
     border-radius: 0;
     box-shadow: none;
@@ -197,26 +226,25 @@ button:disabled {
 
   .tool-buttons {
     grid-template-columns: 1fr;
-    margin-top: 28px;
+    gap: 10px;
+    margin-top: 24px;
   }
 
-  .secondary-button {
-    margin-top: 10px;
-  }
+  .secondary-button { margin-top: 10px; }
 }
 
-@media (max-width: 360px) {
-  .brand {
-    padding-left: 18px;
-    padding-right: 18px;
-  }
+@media (max-width: 380px) {
+  .brand { padding-left: 18px; padding-right: 18px; }
+  .content { padding-left: 18px; padding-right: 18px; }
+  .brand-title { font-size: 15px; }
+  h1 { font-size: 30px; }
+}
 
-  .content {
-    padding-left: 18px;
-    padding-right: 18px;
-  }
-
-  .brand-title {
-    font-size: 15px;
-  }
+@media (max-height: 640px) and (max-width: 760px) {
+  .content { justify-content: flex-start; padding-top: 18px; }
+  .brand { padding-bottom: 10px; }
+  h1 { font-size: 28px; }
+  .intro { margin-top: 10px; }
+  .account-pill { margin-top: 14px; }
+  .tool-buttons { margin-top: 18px; }
 }

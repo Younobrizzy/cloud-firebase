@@ -1,15 +1,17 @@
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
-html,
-body {
+html, body {
   width: 100%;
   height: 100%;
   margin: 0;
 }
 
+html { overflow: hidden; }
+
 body {
+  min-width: 320px;
+  min-height: 100dvh;
+  overflow: hidden;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background: #f5f6f8;
   color: #111827;
@@ -26,21 +28,20 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: clamp(24px, 5vw, 72px);
+  padding: clamp(24px, 4vw, 56px);
+  overflow: hidden;
 }
 
 .content {
-  width: min(100%, 380px);
-  padding: 30px;
+  width: min(100%, 420px);
+  padding: clamp(26px, 4vw, 32px);
   background: #fff;
   border: 1px solid #e1e4e8;
   border-radius: 18px;
-  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.07);
+  box-shadow: 0 14px 40px rgba(15, 23, 42, .07);
 }
 
-.hidden {
-  display: none;
-}
+.hidden { display: none !important; }
 
 .brand {
   display: flex;
@@ -63,23 +64,10 @@ body {
   background: #111827;
 }
 
-.brand-mark span {
-  width: 4px;
-  border-radius: 4px;
-  background: #fff;
-}
-
-.brand-mark span:nth-child(1) {
-  height: 38%;
-}
-
-.brand-mark span:nth-child(2) {
-  height: 68%;
-}
-
-.brand-mark span:nth-child(3) {
-  height: 100%;
-}
+.brand-mark span { width: 4px; border-radius: 4px; background: #fff; }
+.brand-mark span:nth-child(1) { height: 38%; }
+.brand-mark span:nth-child(2) { height: 68%; }
+.brand-mark span:nth-child(3) { height: 100%; }
 
 .brand-title {
   min-width: 0;
@@ -88,29 +76,20 @@ body {
   white-space: nowrap;
   font-size: 17px;
   font-weight: 750;
-  letter-spacing: -0.02em;
+  letter-spacing: -.02em;
 }
 
 h1 {
   margin: 0 0 24px;
-  font-size: 28px;
+  font-size: clamp(26px, 4vw, 30px);
   line-height: 1.15;
-  letter-spacing: -0.035em;
+  letter-spacing: -.035em;
 }
 
-form {
-  display: grid;
-  gap: 9px;
-}
+form { display: grid; gap: 9px; }
+label { margin-top: 2px; font-size: 13px; font-weight: 600; }
 
-label {
-  margin-top: 2px;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-input,
-textarea {
+input, textarea {
   width: 100%;
   border: 1px solid #cbd2dc;
   border-radius: 9px;
@@ -121,21 +100,12 @@ textarea {
   font-size: 14px;
 }
 
-input {
-  height: 44px;
-  padding: 0 13px;
-}
+input { height: 44px; padding: 0 13px; }
+textarea { min-height: 105px; padding: 12px 13px; resize: none; }
 
-textarea {
-  min-height: 105px;
-  padding: 12px 13px;
-  resize: vertical;
-}
-
-input:focus,
-textarea:focus {
+input:focus, textarea:focus {
   border-color: #64748b;
-  box-shadow: 0 0 0 3px rgba(100, 116, 139, 0.1);
+  box-shadow: 0 0 0 3px rgba(100, 116, 139, .1);
 }
 
 button {
@@ -152,10 +122,7 @@ button {
   cursor: pointer;
 }
 
-button:disabled {
-  opacity: 0.65;
-  cursor: wait;
-}
+button:disabled { opacity: .65; cursor: wait; }
 
 .divider {
   display: flex;
@@ -167,12 +134,7 @@ button:disabled {
 }
 
 .divider::before,
-.divider::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: #e5e7eb;
-}
+.divider::after { content: ""; flex: 1; height: 1px; background: #e5e7eb; }
 
 .google-button {
   display: flex;
@@ -185,11 +147,7 @@ button:disabled {
   border: 1px solid #d1d5db;
 }
 
-.google-icon {
-  width: 18px;
-  height: 18px;
-  flex: 0 0 18px;
-}
+.google-icon { width: 18px; height: 18px; flex: 0 0 18px; }
 
 .message {
   min-height: 18px;
@@ -200,57 +158,29 @@ button:disabled {
 }
 
 @media (max-width: 600px) {
-  body {
-    background: #fff;
-  }
+  body { background: #fff; }
 
   .screen {
-    padding: 0;
     align-items: flex-start;
-    overflow-y: auto;
+    padding: 0;
   }
 
   .content {
     width: 100%;
+    height: 100dvh;
     min-height: 100dvh;
-    padding: 28px 22px;
+    padding: max(24px, env(safe-area-inset-top)) 22px max(24px, env(safe-area-inset-bottom));
     border: 0;
     border-radius: 0;
     box-shadow: none;
+    overflow: hidden;
   }
 
-  .brand {
-    margin-bottom: 30px;
-  }
-
-  h1 {
-    margin-bottom: 25px;
-    font-size: 27px;
-  }
+  .brand { margin-bottom: 26px; }
 }
 
 @media (max-width: 360px) {
-  .content {
-    padding: 24px 18px;
-  }
-
-  .brand {
-    gap: 8px;
-    margin-bottom: 26px;
-  }
-
-  .brand-mark {
-    width: 38px;
-    height: 38px;
-    flex-basis: 38px;
-    border-radius: 10px;
-  }
-
-  .brand-title {
-    font-size: 15px;
-  }
-
-  h1 {
-    font-size: 25px;
-  }
+  .content { padding-left: 18px; padding-right: 18px; }
+  .brand { gap: 8px; margin-bottom: 22px; }
+  .brand-title { font-size: 15px; }
 }
