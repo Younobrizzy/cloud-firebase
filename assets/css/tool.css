@@ -372,3 +372,89 @@ button:disabled {
     transition: none !important;
   }
 }
+
+@media (max-width: 600px) {
+  html,
+  body {
+    background: #fff;
+  }
+
+  .page {
+    padding: 0;
+  }
+
+  .tool-page {
+    width: 100%;
+    min-height: 100dvh;
+  }
+
+  .topbar {
+    min-height: 64px;
+    padding: 12px 22px;
+  }
+
+  .tool-content {
+    margin-top: 0;
+  }
+
+  .workspace,
+  .formatter-card {
+    width: 100%;
+    min-height: calc(100dvh - 64px);
+    padding: 28px 22px;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #fff;
+  }
+
+  .workspace-header {
+    gap: 10px;
+  }
+
+  .placeholder {
+    min-height: clamp(220px, 60vw, 320px);
+    padding: 24px 18px;
+  }
+
+  .paste-field {
+    min-height: clamp(250px, 64vw, 360px);
+    border-radius: 10px;
+    font-size: 13px;
+    line-height: 1.65;
+  }
+}
+
+@media (max-width: 360px) {
+  .topbar {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .workspace,
+  .formatter-card {
+    padding: 24px 18px;
+  }
+
+  .brand {
+    gap: 8px;
+  }
+
+  .brand-mark {
+    width: 38px;
+    height: 38px;
+    flex-basis: 38px;
+    border-radius: 10px;
+  }
+
+  .brand-title {
+    font-size: 15px;
+  }
+
+  .signout,
+  .primary,
+  .secondary {
+    min-height: 42px;
+    padding: 0 13px;
+  }
+}
