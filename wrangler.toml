@@ -1,0 +1,7 @@
+name = "json-mail"
+compatibility_date = "2026-09-26"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+# Put non-secret Firebase web configuration here if desired.
+# Put FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY, SMTP_ENCRYPTION_KEY and other secrets in Cloudflare secrets.

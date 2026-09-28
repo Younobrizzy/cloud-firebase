@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Welcome — JSON Mail</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body class="onboarding-page">
+  <main class="onboarding-shell">
+    <section class="onboarding-card" aria-label="Account onboarding">
+      <div class="auth-brand-row">
+        <div class="brand-mark">JM</div>
+        <div class="brand">JSON Mail</div>
+      </div>
+
+      <div class="onboarding-copy">
+        <p class="eyebrow">WELCOME</p>
+        <h1>Set up your profile</h1>
+        <p class="muted">Just a couple of details and your account is ready.</p>
+      </div>
+
+      <form id="profileForm" class="auth-form">
+        <div class="form-grid onboarding-grid">
+          <label>First name
+            <input id="firstName" type="text" autocomplete="given-name" maxlength="80" required placeholder="John">
+          </label>
+          <label>Last name
+            <input id="lastName" type="text" autocomplete="family-name" maxlength="80" required placeholder="Doe">
+          </label>
+        </div>
+
+        <div class="profile-preview">
+          <span class="profile-preview-label">Email</span>
+          <strong id="emailPreview"></strong>
+        </div>
+
+        <button id="continueButton" class="primary-button" type="submit">Continue</button>
+      </form>
+
+      <p id="message" class="status" aria-live="polite"></p>
+    </section>
+  </main>
+
+  <script type="module">
+    import { auth, onAuthStateChanged } from "/assets/js/firebase.js";
+
+    const form = document.querySelector("#profileForm");
+    const firstName = document.querySelector("#firstName");
+    const lastName = document.querySelector("#lastName");
+    const emailPreview = document.querySelector("#emailPreview");
+    const continueButton = document.querySelector("#continueButton");
+    const message = document.querySelector("#message");
+
+    let currentUser = null;
+
+    onAuthStateChanged(auth, async user => {
+      if (!user) {
+        location.replace("/");
+        return;
+      }
+
+      try {
+        const data = await authFetch("/api/user");
+        if (data.configured) {
+          location.replace("/dashboard/");
+          return;
+        }
+
+        currentUser = user;
+        emailPreview.textContent = user.email || "";
+        const names = splitDisplayName(user.displayName || "");
+        if (names.first) firstName.value = names.first;
+        if (names.last) lastName.value = names.last;
+      } catch (error) {
+        showMessage(error.message || "Unable to load your account.", true);
+      }
+    });
+
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
+      if (!currentUser) return;
+
+      const first = firstName.value.trim();
+      const last = lastName.value.trim();
+      if (!first || !last) {
+        showMessage("Enter your first and last name.", true);
+        return;
+      }
+
+      continueButton.disabled = true;
+      continueButton.textContent = "Saving…";
+      showMessage("");
+
+      try {
+        const data = await authFetch("/api/user", {
+          method: "POST",
+          body: JSON.stringify({ firstName: first, lastName: last })
+        });
+        location.replace("/dashboard/");
+      } catch (error) {
+        showMessage(error.message || "Unable to save your profile.", true);
+      } finally {
+        continueButton.disabled = false;
+        continueButton.textContent = "Continue";
+      }
+    });
+
+    async function authFetch(url, options = {}) {
+      if (!auth.currentUser) throw new Error("You are not signed in.");
+      const token = await auth.currentUser.getIdToken();
+      return parseResponse(await fetch(url, {
+        ...options,
+        headers: {
+          ...(options.headers || {}),
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        cache: "no-store"
+      }));
+    }
+
+    async function parseResponse(response) {
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "Request failed.");
+      return data;
+    }
+
+    function splitDisplayName(value) {
+      const parts = value.trim().split(/\s+/).filter(Boolean);
+      if (!parts.length) return { first: "", last: "" };
+      return { first: parts.shift() || "", last: parts.join(" ") };
+    }
+
+    function showMessage(text, error = false) {
+      message.textContent = text;
+      message.dataset.error = error ? "true" : "false";
+    }
+  </script>
+</body>
+</html>

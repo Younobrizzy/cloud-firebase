@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Dashboard — JSON Mail</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div><div class="brand">JSON Mail</div><span id="userEmail" class="muted"></span></div>
+      <button id="logout" class="secondary small">Sign out</button>
+    </header>
+
+    <nav class="tabs" aria-label="Dashboard sections">
+      <button class="tab active" data-tab="smtp">SMTP</button>
+      <button class="tab" data-tab="api">API access</button>
+    </nav>
+
+    <section id="smtp" class="panel tab-panel active">
+      <div class="panel-head"><div><h1>SMTP configuration</h1><p class="muted">Each API has its own SMTP settings, with an optional custom sender and encrypted password storage.</p></div></div>
+      <form id="smtpForm" class="form-grid">
+        <label>SMTP host<input id="host" required placeholder="smtp.gmail.com"></label>
+        <label>Port<input id="port" type="number" min="1" max="65535" required value="465"></label>
+        <label>Security<select id="security"><option value="ssl">SSL / TLS</option><option value="starttls">STARTTLS</option></select></label>
+        <label>SMTP username<input id="username" required placeholder="you@example.com" autocomplete="username"></label>
+<label><span>Custom From email <span class="muted">(optional)</span></span>
+  <input id="fromEmail" type="email" placeholder="sender@example.com" autocomplete="email">
+</label>
+<label><span>From name <span class="muted">(optional)</span></span>
+  <input id="fromName" placeholder="JSON Mail">
+</label>
+<label>SMTP password
+  <span class="password-field">
+    <input id="password" type="password" placeholder="Enter to set or replace password" autocomplete="new-password">
+    <button id="togglePassword" class="password-toggle" type="button" aria-label="Show SMTP password" title="Show password">
+      <svg class="eye-icon eye-open" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.1 12s3.6-6.2 9.9-6.2S21.9 12 21.9 12 18.3 18.2 12 18.2 2.1 12 2.1 12Z"/><circle cx="12" cy="12" r="2.8"/></svg>
+      <svg class="eye-icon eye-closed" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 3 18 18"/><path d="M9.9 5.95A9.63 9.63 0 0 1 12 5.8c6.3 0 9.9 6.2 9.9 6.2a17.6 17.6 0 0 1-3.45 3.7"/><path d="M6.2 8.2A17.3 17.3 0 0 0 2.1 12S5.7 18.2 12 18.2a9.9 9.9 0 0 0 2.6-.34"/><path d="M9.95 9.95a2.8 2.8 0 0 0 4.1 4.1"/></svg>
+    </button>
+  </span>
+  <small id="passwordStatus" class="muted"></small>
+</label>
+        <div class="actions full"><button id="saveSmtp" type="submit">Save SMTP configuration</button></div>
+      </form>
+      <pre id="smtpResult" class="result" aria-live="polite"></pre>
+    </section>
+
+    <section id="api" class="panel tab-panel">
+      <div class="panel-head"><div><h1>API access</h1><p class="muted">Use this key from your application to send JSON email without a Firebase login.</p></div></div>
+      <label class="switch-row"><input id="apiEnabled" type="checkbox"><span>API key enabled</span></label>
+      <div class="endpoint"><span>Endpoint</span><code id="apiEndpoint">Loading…</code><div class="endpoint-actions"><button id="copyId" class="secondary small" type="button">Copy ID</button><button id="copyEndpoint" class="secondary small" type="button">Copy endpoint</button></div></div>
+      <div class="api-usage"><span>Successful sends</span><strong id="apiUsage">0 times</strong></div>
+      <div class="actions"><button id="regenerateKey" class="danger" type="button">Regenerate key</button></div>
+      <pre id="apiResult" class="result" aria-live="polite"></pre>
+      <div class="notice"><strong>Keep this key private.</strong> Anyone who has it can use your configured SMTP account through the send endpoint.</div>
+    </section>
+
+  </main>
+
+<script type="module">
+import { auth, onAuthStateChanged, signOut } from "/assets/js/firebase.js";
+const $ = s => document.querySelector(s);
+let currentUser = null;
+
+onAuthStateChanged(auth, async user => {
+  if (!user) {
+    location.replace("/");
+    return;
+  }
+  currentUser = user;
+  try {
+    const profile = await parseResponse(await authFetch("/api/user"));
+    if (!profile.configured) {
+      location.replace("/onboarding/");
+      return;
+    }
+    $("#userEmail").textContent = profile.user?.email || user.email || "";
+    loadAll();
+  } catch (e) {
+    show("#apiResult", e.message, true);
+  }
+});
+
+$("#logout").onclick = async () => { await signOut(auth); location.replace("/"); };
+
+$("#togglePassword").onclick = () => {
+  const input = $("#password");
+  const button = $("#togglePassword");
+  const visible = input.type === "text";
+  input.type = visible ? "password" : "text";
+  button.setAttribute("aria-label", visible ? "Show SMTP password" : "Hide SMTP password");
+  button.setAttribute("title", visible ? "Show password" : "Hide password");
+  button.classList.toggle("is-visible", !visible);
+};
+
+document.querySelectorAll(".tab").forEach(btn => btn.onclick = () => {
+  document.querySelectorAll(".tab").forEach(x => x.classList.toggle("active", x === btn));
+  document.querySelectorAll(".tab-panel").forEach(x => x.classList.toggle("active", x.id === btn.dataset.tab));
+  if (btn.dataset.tab === "api") loadKey();
+});
+
+async function authFetch(url, options = {}) {
+  if (!currentUser) throw new Error("You are not signed in.");
+  const token = await currentUser.getIdToken();
+  return fetch(url, { ...options, headers: { ...(options.headers || {}), Authorization: `Bearer ${token}`, "Content-Type": "application/json" } });
+}
+async function parseResponse(response) {
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const raw = data.error || "Request failed.";
+    if (raw.includes("FIREBASE_SERVICE_ACCOUNT_JSON") || raw.includes("FIREBASE_CLIENT_EMAIL")) {
+      throw new Error("Server Firestore setup is incomplete. Add FIREBASE_SERVICE_ACCOUNT_JSON (recommended) in Cloudflare Pages → Settings → Variables and Secrets, then redeploy.");
+    }
+    if (raw.includes("SMTP_ENCRYPTION_KEY")) {
+      throw new Error("SMTP encryption setup is incomplete. Add SMTP_ENCRYPTION_KEY in Cloudflare Pages → Settings → Variables and Secrets, then redeploy.");
+    }
+    throw new Error(raw);
+  }
+  return data;
+}
+
+async function loadAll() { await Promise.allSettled([loadSmtp(), loadKey()]); }
+async function loadSmtp() {
+  try { const data = await parseResponse(await authFetch("/api/smtp")); if (!data.smtp) return; const s=data.smtp; $("#host").value=s.host; $("#port").value=s.port; $("#security").value=s.security; $("#username").value=s.username || ""; $("#fromEmail").value=s.fromEmail || ""; $("#fromName").value=s.fromName || ""; $("#passwordStatus").textContent=data.passwordSaved ? "Password saved. Leave blank to keep it." : ""; } catch(e) { show("#smtpResult", e.message, true); }
+}
+$("#smtpForm").onsubmit = async e => { e.preventDefault(); const b={host:$("#host").value,port:Number($("#port").value),security:$("#security").value,username:$("#username").value,password:$("#password").value,fromEmail:$("#fromEmail").value,fromName:$("#fromName").value}; const btn=$("#saveSmtp"); btn.disabled=true; btn.textContent="Saving…"; try { const d=await parseResponse(await authFetch("/api/smtp",{method:"PUT",body:JSON.stringify(b)})); $("#password").value=""; $("#passwordStatus").textContent="Password saved. Leave blank to keep it."; show("#smtpResult", d.message + (b.fromEmail.trim() ? " Custom From email was verified by the SMTP server." : "")); } catch(e){show("#smtpResult",e.message,true)} finally {btn.disabled=false;btn.textContent="Save SMTP configuration"} };
+
+let currentApiKey = "";
+async function loadKey() { try { const d=await parseResponse(await authFetch("/api/key")); if(d.key){ currentApiKey=d.key; $("#apiEndpoint").textContent=location.origin+"/api/send/"+d.key; $("#apiEnabled").checked=d.enabled; $("#apiUsage").textContent=`${Number(d.usageCount || 0)} ${Number(d.usageCount || 0) === 1 ? "time" : "times"}`; } else { currentApiKey=""; $("#apiEndpoint").textContent="Generate a key to create the endpoint."; $("#apiUsage").textContent="0 times"; } } catch(e){show("#apiResult",e.message,true)} }
+$("#regenerateKey").onclick = async () => { if(!confirm("Regenerate the API key? The current key will stop working.")) return; const b=$("#regenerateKey"); b.disabled=true;b.textContent="Generating…"; try { const d=await parseResponse(await authFetch("/api/key",{method:"POST",body:"{}"})); currentApiKey=d.key; $("#apiEndpoint").textContent=d.endpoint; $("#apiEnabled").checked=true; $("#apiUsage").textContent="0 times"; show("#apiResult","New API key generated. Update your application with the new endpoint."); } catch(e){show("#apiResult",e.message,true)} finally{b.disabled=false;b.textContent="Regenerate key"} };
+$("#apiEnabled").onchange = async () => { const enabled=$("#apiEnabled").checked; try { await parseResponse(await authFetch("/api/key",{method:"PATCH",body:JSON.stringify({enabled})})); show("#apiResult",enabled?"API key enabled.":"API key disabled."); } catch(e){$("#apiEnabled").checked=!enabled;show("#apiResult",e.message,true)} };
+$("#copyId").onclick = async () => { if(!currentApiKey) return; await navigator.clipboard.writeText(currentApiKey); show("#apiResult","API key ID copied."); };
+$("#copyEndpoint").onclick = async () => { const endpoint=$("#apiEndpoint").textContent.trim(); if(!endpoint || endpoint.includes("Loading") || endpoint.includes("Generate a key")) return; await navigator.clipboard.writeText(endpoint); show("#apiResult","Endpoint copied."); };
+
+function show(selector,text,error=false){const el=$(selector);el.textContent=text;el.dataset.error=error?"true":"false";}
+</script>
+</body>
+</html>
