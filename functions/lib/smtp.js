@@ -2,7 +2,6 @@ import { connect } from "cloudflare:sockets";
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
-const SMTP_TIMEOUT_MS = 15000;
 
 export async function verifySmtpSender({ host, port, security, user, password, fromEmail, ehloName }) {
   const sender = String(fromEmail || "").trim();
@@ -28,17 +27,17 @@ export async function verifySmtpSender({ host, port, security, user, password, f
       { hostname: host, port },
       security === "ssl"
         ? { secureTransport: "on", allowHalfOpen: false }
-        : { secureTransport: "starttls", allowHalfOpen: false }
+        : { secureTransport: security === "starttls" ? "starttls" : "off", allowHalfOpen: false }
     );
 
-    await withTimeout(socket.opened, "SMTP connection timed out.");
+    await socket.opened;
 
     stage = "SMTP greeting";
     client = new SmtpClient(socket);
-    await withTimeout(client.expectCode(220), "SMTP greeting timed out.");
+    await client.expectCode(220);
 
     stage = "EHLO";
-    let capabilities = await withTimeout(client.ehlo(ehloName), "SMTP EHLO timed out.");
+    let capabilities = await client.ehlo(ehloName);
 
     if (security !== "ssl" && security === "starttls") {
       if (!capabilities.has("STARTTLS")) {
@@ -46,22 +45,22 @@ export async function verifySmtpSender({ host, port, security, user, password, f
       }
 
       stage = "STARTTLS";
-      await withTimeout(client.command("STARTTLS", [220]), "SMTP STARTTLS command timed out.");
+      await client.command("STARTTLS", [220]);
       client.release();
       const tlsSocket = socket.startTls();
-      await withTimeout(tlsSocket.opened, "SMTP TLS handshake timed out.");
+      await tlsSocket.opened;
 
       socket = tlsSocket;
       stage = "EHLO after STARTTLS";
       client = new SmtpClient(socket);
-      capabilities = await withTimeout(client.ehlo(ehloName), "SMTP EHLO timed out.");
+      capabilities = await client.ehlo(ehloName);
     }
 
     stage = "SMTP authentication";
-    await withTimeout(authenticate(client, capabilities, user, password), "SMTP authentication timed out.");
+    await authenticate(client, capabilities, user, password);
 
     stage = "custom From compatibility check";
-    const response = await withTimeout(client.command(`MAIL FROM:<${sanitizeAddress(sender)}>`, [250, 530, 550, 551, 553, 554]), "SMTP sender check timed out.");
+    const response = await client.command(`MAIL FROM:<${sanitizeAddress(sender)}>`, [250, 530, 550, 551, 553, 554]);
     if (response.code !== 250) {
       throw smtpError(
         response.code,
@@ -70,8 +69,8 @@ export async function verifySmtpSender({ host, port, security, user, password, f
     }
 
     // Reset the transaction without sending a message.
-    await withTimeout(client.command("RSET", [250]).catch(() => {}), "SMTP reset timed out.");
-    await withTimeout(client.command("QUIT", [221, 250]).catch(() => {}), "SMTP quit timed out.");
+    await client.command("RSET", [250]).catch(() => {});
+    await client.command("QUIT", [221, 250]).catch(() => {});
     try { socket.close(); } catch {}
 
     return { compatible: true, skipped: false };
@@ -107,12 +106,6 @@ export async function sendSmtp({ host, port, security, user, password, fromEmail
     throw new Error("SMTP_PORT must be a valid TCP port.");
   }
 
-  if (security !== "ssl" && security !== "starttls") {
-    const error = new Error("SMTP security must be SSL / TLS or STARTTLS.");
-    error.status = 400;
-    throw error;
-  }
-
   const secure = security === "ssl";
 
   let socket;
@@ -124,17 +117,17 @@ export async function sendSmtp({ host, port, security, user, password, fromEmail
       { hostname: host, port },
       secure
         ? { secureTransport: "on", allowHalfOpen: false }
-        : { secureTransport: "starttls", allowHalfOpen: false }
+        : { secureTransport: security === "starttls" ? "starttls" : "off", allowHalfOpen: false }
     );
 
-    await withTimeout(socket.opened, "SMTP connection timed out.");
+    await socket.opened;
 
     stage = "SMTP greeting";
     client = new SmtpClient(socket);
-    await withTimeout(client.expectCode(220), "SMTP greeting timed out.");
+    await client.expectCode(220);
 
     stage = "EHLO";
-    let capabilities = await withTimeout(client.ehlo(ehloName), "SMTP EHLO timed out.");
+    let capabilities = await client.ehlo(ehloName);
 
     if (!secure && security === "starttls") {
       if (!capabilities.has("STARTTLS")) {
@@ -142,21 +135,21 @@ export async function sendSmtp({ host, port, security, user, password, fromEmail
       }
 
       stage = "STARTTLS";
-      await withTimeout(client.command("STARTTLS", [220]), "SMTP STARTTLS command timed out.");
+      await client.command("STARTTLS", [220]);
 
       // Cloudflare requires the old socket readers/writers to be released
       // before switching to the new TLS socket.
       client.release();
       const tlsSocket = socket.startTls();
-      await withTimeout(tlsSocket.opened, "SMTP TLS handshake timed out.");
+      await tlsSocket.opened;
 
       stage = "EHLO after STARTTLS";
       client = new SmtpClient(tlsSocket);
-      capabilities = await withTimeout(client.ehlo(ehloName), "SMTP EHLO timed out.");
+      capabilities = await client.ehlo(ehloName);
     }
 
     stage = "SMTP authentication";
-    await withTimeout(authenticate(client, capabilities, user, password), "SMTP authentication timed out.");
+    await authenticate(client, capabilities, user, password);
 
     // The configured From email is the sender when present; otherwise the authenticated SMTP username is used. The JSON `to` field can override the recipient.
     const to = normalizeEmails(payload?.to, false);
@@ -166,21 +159,21 @@ export async function sendSmtp({ host, port, security, user, password, fromEmail
     const recipients = [...to, ...cc, ...bcc];
 
     stage = "MAIL FROM";
-    const mailFromResult = await withTimeout(sendMailFrom(client, requestFrom), "SMTP sender command timed out.");
+    const mailFromResult = await sendMailFrom(client, requestFrom);
 
     stage = "RCPT TO";
     for (const recipient of recipients) {
-      const response = await withTimeout(client.command(
+      const response = await client.command(
         `RCPT TO:<${sanitizeAddress(recipient)}>`,
         [250, 251]
-      ), "SMTP recipient command timed out.");
+      );
       if (response.code >= 400) {
         throw smtpError(response.code, response.message);
       }
     }
 
     stage = "DATA";
-    await withTimeout(client.command("DATA", [354]), "SMTP DATA command timed out.");
+    await client.command("DATA", [354]);
 
     const messageId = `<${crypto.randomUUID()}@${messageDomain(requestFrom, host)}>`;
     const rawMessage = buildMimeMessage({
@@ -196,13 +189,13 @@ export async function sendSmtp({ host, port, security, user, password, fromEmail
     });
 
     stage = "message delivery";
-    await withTimeout(client.writeData(rawMessage), "SMTP message upload timed out.");
-    const accepted = await withTimeout(client.readResponse(), "SMTP message delivery timed out.");
+    await client.writeData(rawMessage);
+    const accepted = await client.readResponse();
     if (![250, 251].includes(accepted.code)) {
       throw smtpError(accepted.code, accepted.message);
     }
 
-    await withTimeout(client.command("QUIT", [221, 250]).catch(() => {}), "SMTP quit timed out.");
+    await client.command("QUIT", [221, 250]).catch(() => {});
 
     try { socket.close(); } catch {}
     return { messageId, envelopeFrom: mailFromResult.envelopeFrom, fallbackUsed: mailFromResult.fallbackUsed };
@@ -240,9 +233,9 @@ async function authenticate(client, capabilities, user, password) {
   // Prefer PLAIN where advertised, otherwise LOGIN.
   if (mechanisms.includes("PLAIN")) {
     const token = base64FromString(`\0${user}\0${password}`);
-    const response = await withTimeout(client.command(`AUTH PLAIN ${token}`, [235, 334]), "SMTP authentication timed out.");
+    const response = await client.command(`AUTH PLAIN ${token}`, [235, 334]);
     if (response.code === 334) {
-      const finalResponse = await withTimeout(client.command(token, [235]), "SMTP authentication timed out.");
+      const finalResponse = await client.command(token, [235]);
       if (finalResponse.code !== 235) {
         throw smtpError(finalResponse.code, finalResponse.message);
       }
@@ -251,17 +244,17 @@ async function authenticate(client, capabilities, user, password) {
   }
 
   if (mechanisms.includes("LOGIN")) {
-    await withTimeout(client.command("AUTH LOGIN", [334]), "SMTP authentication timed out.");
-    await withTimeout(client.command(base64FromString(user), [334]), "SMTP authentication timed out.");
-    await withTimeout(client.command(base64FromString(password), [235]), "SMTP authentication timed out.");
+    await client.command("AUTH LOGIN", [334]);
+    await client.command(base64FromString(user), [334]);
+    await client.command(base64FromString(password), [235]);
     return;
   }
 
   // Some SMTP servers omit AUTH from EHLO but still accept LOGIN.
-  const response = await withTimeout(client.command("AUTH LOGIN", [334, 504, 530]), "SMTP authentication timed out.");
+  const response = await client.command("AUTH LOGIN", [334, 504, 530]);
   if (response.code === 334) {
-    await withTimeout(client.command(base64FromString(user), [334]), "SMTP authentication timed out.");
-    await withTimeout(client.command(base64FromString(password), [235]), "SMTP authentication timed out.");
+    await client.command(base64FromString(user), [334]);
+    await client.command(base64FromString(password), [235]);
     return;
   }
 
@@ -507,7 +500,7 @@ class SmtpClient {
   }
 
   async writeLine(line) {
-    await withTimeout(this.writer.write(encoder.encode(`${line}\r\n`)), "SMTP write timed out.");
+    await this.writer.write(encoder.encode(`${line}\r\n`));
   }
 
   async writeData(data) {
@@ -517,7 +510,7 @@ class SmtpClient {
       .map(line => line.startsWith(".") ? `.${line}` : line)
       .join("\r\n");
 
-    await withTimeout(this.writer.write(encoder.encode(`${stuffed}\r\n.\r\n`)), "SMTP message upload timed out.");
+    await this.writer.write(encoder.encode(`${stuffed}\r\n.\r\n`));
   }
 
   async readResponse() {
@@ -555,7 +548,7 @@ class SmtpClient {
         return line;
       }
 
-      const { value, done } = await withTimeout(this.reader.read(), "SMTP read timed out.");
+      const { value, done } = await this.reader.read();
       if (done) throw new Error("SMTP connection closed unexpectedly.");
 
       this.text += decoder.decode(value, { stream: true });
@@ -577,26 +570,14 @@ function sanitizeEhloName(value) {
     .slice(0, 255) || "localhost";
 }
 
-function withTimeout(promise, message, ms = SMTP_TIMEOUT_MS) {
-  let timer;
-  const timeout = new Promise((_, reject) => {
-    timer = setTimeout(() => {
-      const error = new Error(message);
-      error.code = "SMTP_TIMEOUT";
-      error.status = 504;
-      reject(error);
-    }, ms);
-  });
-  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
-}
-
 function resolveSmtpSecurity(value, port) {
   const configured = String(value || "").trim().toLowerCase();
 
   if (configured === "ssl" || configured === "tls") return "ssl";
   if (configured === "starttls") return "starttls";
+  if (configured === "off" || configured === "plain") return "off";
   if (configured) {
-    const error = new Error("SMTP_SECURITY must be one of: ssl or starttls.");
+    const error = new Error("SMTP_SECURITY must be one of: ssl, starttls, off.");
     error.status = 500;
     throw error;
   }
@@ -605,8 +586,6 @@ function resolveSmtpSecurity(value, port) {
   if (port === 465) return "ssl";
   if (port === 587 || port === 2525) return "starttls";
 
-  // Other ports must explicitly select SSL / TLS or STARTTLS.
-  const error = new Error("SMTP_SECURITY must be set to ssl or starttls.");
-  error.status = 400;
-  throw error;
+  // Other ports can be explicitly configured with SMTP_SECURITY.
+  return "off";
 }

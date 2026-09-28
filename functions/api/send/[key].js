@@ -159,11 +159,9 @@ function allSameEmail(emails, reference) {
 function clientError(message) { const e = new Error(message); e.status = 400; return e; }
 function publicError(error) {
   if (Number(error?.smtpCode) === 535) return "Bad Credentials";
-  if (error?.code === "SMTP_TIMEOUT") return "SMTP request timed out.";
   if ([400,401,409,413].includes(error?.status)) return error.message;
-  if (error?.smtpCode) return "SMTP server rejected the request.";
-  if (error?.status && error.status >= 500) return "SMTP connection failed.";
+  if (error?.smtpCode) return error.message;
   const message = String(error?.message || "").trim();
-  return message || "SMTP connection failed.";
+  return message || "SMTP connection failed. Check the SMTP configuration and server response.";
 }
 function json(data, status = 200) { return Response.json(data, { status, headers: { "Cache-Control": "no-store" } }); }

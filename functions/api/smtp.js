@@ -106,12 +106,10 @@ function normalizeFromEmail(value) {
 
 function normalizeSecurity(value, port) {
   const v = String(value || "").toLowerCase();
-  if (["ssl", "starttls"].includes(v)) return v;
+  if (["ssl", "starttls", "off"].includes(v)) return v;
   if (port === 465) return "ssl";
   if (port === 587 || port === 2525) return "starttls";
-  const error = new Error("SMTP security must be SSL / TLS or STARTTLS.");
-  error.status = 400;
-  throw error;
+  return "off";
 }
 function clientError(message) { const e = new Error(message); e.status = 400; return e; }
 function handleError(error) {
@@ -119,12 +117,6 @@ function handleError(error) {
   if (Number(error?.smtpCode) === 535) {
     return json({ error: "Bad Credentials" }, 502);
   }
-  if (error?.code === "SMTP_TIMEOUT") {
-    return json({ error: "SMTP request timed out." }, 504);
-  }
-  if (error?.smtpCode) {
-    return json({ error: "SMTP server rejected the request." }, 502);
-  }
-  return json({ error: error?.status && error.status < 500 ? error.message : "SMTP configuration failed." }, error?.status || 500);
+  return json({ error: error?.message || "Request failed." }, error?.status || 500);
 }
 function json(data, status = 200) { return Response.json(data, { status, headers: { "Cache-Control": "no-store" } }); }

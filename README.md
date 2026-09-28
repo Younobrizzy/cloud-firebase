@@ -30,7 +30,7 @@ Each user has one document at `smtpConfigs/{userId}`.
 
 Each API has its own SMTP settings, with an optional custom sender and encrypted password storage.
 
-SMTP security must use **SSL / TLS** or **STARTTLS**. Unencrypted SMTP authentication is not supported. When a value is provided, saving the SMTP configuration performs a real SMTP compatibility check: the app authenticates with the supplied SMTP credentials and sends a `MAIL FROM` command using the custom address without sending an email. The custom address is saved only when the SMTP server accepts it. If the server rejects it, the SMTP configuration is not updated with that custom address and the error is shown in the dashboard.
+The dashboard **Custom From email** is optional. When a value is provided, saving the SMTP configuration performs a real SMTP compatibility check: the app authenticates with the supplied SMTP credentials and sends a `MAIL FROM` command using the custom address without sending an email. The custom address is saved only when the SMTP server accepts it. If the server rejects it, the SMTP configuration is not updated with that custom address and the error is shown in the dashboard.
 
 When a saved custom From email is present, outgoing messages use it for both the SMTP envelope sender (`MAIL FROM`) and the message `From:` header. If **Custom From email** is blank, the SMTP username is used as the sender. Some mail providers can still rewrite the visible sender after accepting the message; that behavior is controlled by the provider, not by this application.
 
@@ -186,17 +186,3 @@ For local Pages development, use `.dev.vars` and keep it out of Git.
 ├── wrangler.toml
 └── .gitignore
 ```
-
-## SMTP security and errors
-
-SMTP connections require **SSL / TLS** or **STARTTLS**. The insecure `None` / `off` mode is not supported.
-
-SMTP operations have a 15-second timeout. If the SMTP server does not respond in time, the API returns:
-
-```json
-{
-  "error": "SMTP request timed out."
-}
-```
-
-Public API responses do not expose raw SMTP server responses. Authentication failures return `Bad Credentials`, while other SMTP rejection responses return `SMTP server rejected the request.` Detailed SMTP errors remain available only in server logs.
